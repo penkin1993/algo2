@@ -47,10 +47,5 @@ path = get_path(answer)
 sys.stdout.write(str(answer[-1][-1]) + '\n')
 sys.stdout.write(path)
 
-"""
-2 4
-0 -10 -3 13
--10 5 6 0
-"""
 
 
