@@ -1,5 +1,7 @@
 import sys
 
+INF = -100000000
+
 
 def get_answer_matrix(matrix):
     n = len(matrix)
@@ -7,7 +9,7 @@ def get_answer_matrix(matrix):
 
     answer = list()
     for _ in range(n + 1):
-        answer.append([-100000000]*(m + 1))
+        answer.append([INF]*(m + 1))
 
     answer[1][1] = matrix[0][0]
 

@@ -39,13 +39,3 @@ with open("output.txt", "w") as f:
     f.write(str(len(path) - 1) + "\n")
     f.write(" ".join(path))
 
-"""
-5 3
-2 -3 5
-"""
-
-"""
-7
-3
-1 2 4 5 
-"""
