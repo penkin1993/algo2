@@ -11,7 +11,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="88a81069-46de-4f38-8dbb-ce244187a53d" name="Default Changelist" comment="" />
+    <list default="true" id="88a81069-46de-4f38-8dbb-ce244187a53d" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/2/Untitled.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/2/Untitled.ipynb" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +25,7 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="ProjectId" id="1YAT9E8w145HSuDB4ER4oZWslj6" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
   </component>
@@ -61,6 +64,7 @@
       <option name="presentableId" value="Default" />
       <updated>1582384246287</updated>
       <workItem from="1582384248839" duration="2762000" />
+      <workItem from="1583158318799" duration="2000" />
     </task>
     <servers />
   </component>
