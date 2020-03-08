@@ -11,8 +11,6 @@ for i in range(n):
     node2length[i] = list(map(int, sys.stdin.readline().split()))
     node2length[i][i] = INF
 
-mask2length = defaultdict(lambda: INF)  # ввести массив расстояний
-
 
 def get_bit(mask, i):
     return (mask >> i) & 1
@@ -21,6 +19,7 @@ def get_bit(mask, i):
 def get_ans(node2length, n):
     current_node_mask2length = defaultdict(lambda: INF)
     mask2order = defaultdict(list)
+
     for i in range(n):
         current_node_mask2length[(i, 0)] = 0  # node, mask
     for mask in range((1 << n)):  # внешний обход всех масок
@@ -33,12 +32,15 @@ def get_ans(node2length, n):
                         if new_length < current_node_mask2length[(j, mask + (1 << i))]:
                             current_node_mask2length[(j, mask + (1 << i))] = new_length
 
-                            mask2order[(j, mask + (1 << i))] = .append()
+                            mask2order[mask + (1 << i)] = mask2order[mask].copy()
+                            mask2order[mask + (1 << i)].append(i)
 
+    min_pair = [(current_node_mask2length[(i, ((1 << n) - 1) - (1 << i))], i) for i in range(n)]
+    min_val, min_path = min(min_pair, key=lambda x: x[0])
+    min_path = mask2order[(((1 << n) - 1) - (1 << min_path))] + [min_path]
+    min_path = [x + 1 for x in min_path]
 
-    min_length = min([current_node_mask2length[(i, ((1 << n) - 1) - (1 << i))] for i in range(n)])
-
-    return min_length  # , mask2order[(1 << n) - 1]
+    return min_val, min_path
 
 
 print(get_ans(node2length, n))
