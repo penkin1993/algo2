@@ -15,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="415">
-              <caret line="43" lean-forward="true" selection-start-line="43" selection-end-line="43" />
+            <state relative-caret-position="431">
+              <caret line="52" column="1" lean-forward="true" selection-start-line="52" selection-start-column="1" selection-end-line="52" selection-end-column="1" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -154,12 +154,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1583680331574</updated>
-      <workItem from="1583680332786" duration="11186000" />
+      <workItem from="1583680332786" duration="12279000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11186000" />
+    <option name="totallyTimeSpent" value="12279000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="53" y="23" width="1627" height="1027" extended-state="0" />
@@ -192,7 +192,7 @@
     <option name="version" value="1" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/4$main.coverage" NAME="main Coverage Results" MODIFIED="1583703706268" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/4$main.coverage" NAME="main Coverage Results" MODIFIED="1583707036349" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/../1/main.py">
@@ -207,8 +207,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="415">
-          <caret line="43" lean-forward="true" selection-start-line="43" selection-end-line="43" />
+        <state relative-caret-position="431">
+          <caret line="52" column="1" lean-forward="true" selection-start-line="52" selection-start-column="1" selection-end-line="52" selection-end-column="1" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>

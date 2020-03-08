@@ -18,10 +18,11 @@ def get_bit(mask, i):
 
 def get_ans(node2length, n):
     current_node_mask2length = defaultdict(lambda: INF)
-    mask2order = defaultdict(list)
+    mask2order = {(i, 0): [i] for i in range(5)}
 
     for i in range(n):
         current_node_mask2length[(i, 0)] = 0  # node, mask
+
     for mask in range((1 << n)):  # внешний обход всех масок
         for i in range(n):
             if get_bit(mask, i) == 0:  # вершина i не посящалась
@@ -32,18 +33,21 @@ def get_ans(node2length, n):
                         if new_length < current_node_mask2length[(j, mask + (1 << i))]:
                             current_node_mask2length[(j, mask + (1 << i))] = new_length
 
-                            mask2order[mask + (1 << i)] = mask2order[mask].copy()
-                            mask2order[mask + (1 << i)].append(i)
+                            mask2order[(j, mask + (1 << i))] = mask2order[(i, mask)].copy()
+                            mask2order[(j, mask + (1 << i))].append(j)
 
-    min_pair = [(current_node_mask2length[(i, ((1 << n) - 1) - (1 << i))], i) for i in range(n)]
-    min_val, min_path = min(min_pair, key=lambda x: x[0])
-    min_path = mask2order[(((1 << n) - 1) - (1 << min_path))] + [min_path]
-    min_path = [x + 1 for x in min_path]
+    answer = []
+    for i in range(n):
+        key = (i, ((1 << n) - 1) - (1 << i))
+        answer.append((current_node_mask2length[key], mask2order[key]))
 
-    return min_val, min_path
+    answer = min(answer, key=lambda x: x[0])
+    return answer[0], [str(x + 1) for x in answer[1]]
 
 
-print(get_ans(node2length, n))
+answer = get_ans(node2length, n)
+print(answer[0])
+print(" ".join(answer[1]))
 
 """
 5
