@@ -2,7 +2,7 @@ import sys
 
 from collections import defaultdict
 
-INF = 100000000000
+INF = 1000000000000000
 
 n = int(sys.stdin.readline())
 node2length = defaultdict(list)
@@ -18,7 +18,7 @@ def get_bit(mask, i):
 
 def get_ans(node2length, n):
     current_node_mask2length = defaultdict(lambda: INF)
-    mask2order = {(i, 0): [i] for i in range(5)}
+    mask2order = {(i, 0): [i] for i in range(n)}
 
     for i in range(n):
         current_node_mask2length[(i, 0)] = 0  # node, mask
