@@ -25,9 +25,9 @@ def get_ans(node2length, n):
 
     for mask in range((1 << n)):  # внешний обход всех масок
         for i in range(n):
-            if get_bit(mask, i) == 0:  # вершина i не посящалась
+            if get_bit(mask, i) == 0:
                 for j in range(n):
-                    if (j != i) & (get_bit(mask, j) == 0):  # вершина j ранее не посящалась
+                    if (j != i) & (get_bit(mask, j) == 0):
                         new_length = node2length[i][j] + current_node_mask2length[(i, mask)]
 
                         if new_length < current_node_mask2length[(j, mask + (1 << i))]:
@@ -48,12 +48,3 @@ def get_ans(node2length, n):
 answer = get_ans(node2length, n)
 print(answer[0])
 print(" ".join(answer[1]))
-
-"""
-5
-0 183 163 173 181
-183 0 165 172 171
-163 165 0 189 302
-173 172 189 0 167
-181 171 302 167 0
-"""
