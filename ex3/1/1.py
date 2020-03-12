@@ -15,7 +15,6 @@ def get_ans(number, all_del):
 
 
 n = int(sys.stdin.readline())
-
 all_del = {i: True for i in range(2, 300000)}
 
 for _ in range(n):
@@ -27,7 +26,6 @@ for _ in range(n):
     else:
         print(str(inp_num))
 
-        # второй массив с наибольшим общим делителем для каждого числа
 
 """
 4
@@ -36,3 +34,9 @@ for _ in range(n):
 3
 55
 """
+
+
+# TODO: 1. Второй массив с наименьшим общим делителем для каждого числа
+
+# TODO: 2. Переписать на с++
+
