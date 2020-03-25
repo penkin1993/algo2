@@ -60,9 +60,8 @@ void get_multiplications(int_fast64_t number,
     int_fast64_t gcd;
 
     for (int_fast64_t j:*c) {
-        a = 13;
-        b = 13;
-
+        a = 3;
+        b = 3;
         for (int i = 0; i < 100; i++) { // проверка с одним модулем
             a = num_generator(a, j, num_sqrt);
             b = num_generator(num_generator(b, j, num_sqrt), j, num_sqrt);
@@ -74,7 +73,7 @@ void get_multiplications(int_fast64_t number,
                 gcd = get_gcd(a - b, number);
             }
 
-            if ((gcd != num_sqrt) & (gcd != 1)) {
+            if ((gcd != number) & (gcd != 1)) {
                 std::cout << " gcd " << gcd << "\n";
                 get_multiplications(gcd, prime_num, c, multiplications);
                 get_multiplications(number / gcd, prime_num, c, multiplications);
