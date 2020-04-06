@@ -1,0 +1,114 @@
+#include <iostream>
+#include <vector>
+
+class Tree {
+public:
+    explicit Tree(std::vector<int64_t> *a);
+
+    ~Tree() = default;
+
+    Tree(const Tree &) = delete;
+
+    Tree(Tree &&) = default;
+
+    Tree &operator=(const Tree &) = delete;
+
+    Tree &operator=(Tree &&) = delete;
+
+    void update(int_fast64_t i, int_fast64_t val);
+
+    int_fast64_t rsq(int_fast64_t a, int_fast64_t b);
+
+private:
+    int_fast64_t size, x;
+    std::vector<int_fast64_t> t;
+
+    int_fast64_t rsq(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b);
+};
+
+Tree::Tree(std::vector<int64_t> *a) {
+    size = a->size();
+    x = 1;
+    while (x < a->size()) {
+        x *= 2;
+    }
+    t.insert(t.end(), x - 1, 0);
+
+    for (long long i : *a) {
+        t.push_back(i);
+    }
+
+    for (int_fast64_t v = x - 2; v >= 0; v--) {
+        t[v] = t[2 * v + 1] + t[2 * v + 2];
+    }
+}
+
+void Tree::update(int_fast64_t i, int_fast64_t val) {
+    int_fast64_t v = x - 1 + i;
+    t.at(v) = val;
+    while (v != 0) {
+        v = (v - 1) / 2;
+        t.at(v) = t.at(2 * v + 1) + t.at(2 * v + 2);
+    }
+
+    //for (long long i : t) {
+    //    std::cout << i << " ";
+    //}
+}
+
+
+int_fast64_t Tree::rsq(int_fast64_t v,int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b) {
+
+    if ((l > b) or (r < a)) {
+        return 0;
+    }
+    if ((l >= a) and (r <= b)) {
+        return t.at(v);
+    }
+    int_fast64_t m = (l + r) / 2;
+
+    return rsq(2 * v + 1, l, m, a, b) + rsq(2 * v + 2, m + 1, r, a, b);
+}
+
+int_fast64_t Tree::rsq(int_fast64_t a, int_fast64_t b) {
+    return rsq(0, 0, size -1, a, b);
+}
+
+
+int main() {
+    std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
+    int_fast64_t n;
+    std::cin >> n;
+
+    std::vector<int_fast64_t> a;
+    int_fast64_t num;
+
+    for (int i = 0; i < n; i++) {
+        std::cin >> num;
+        a.push_back(num);
+    }
+    Tree tree = Tree(&a);
+
+
+
+
+
+    tree.update(1, 100);
+
+    tree.rsq(2, 4);
+
+
+
+    
+
+    return 0;
+}
+
+/*
+8
+1 2 3 4 5 0 0 0
+*/
+
+
+
+
