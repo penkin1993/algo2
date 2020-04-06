@@ -57,7 +57,7 @@ void Tree::update(int_fast64_t i, int_fast64_t val) {
 }
 
 
-int_fast64_t Tree::rsq(int_fast64_t v,int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b) {
+int_fast64_t Tree::rsq(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b) {
 
     if ((l > b) or (r < a)) {
         return 0;
@@ -71,7 +71,7 @@ int_fast64_t Tree::rsq(int_fast64_t v,int_fast64_t l, int_fast64_t r, int_fast64
 }
 
 int_fast64_t Tree::rsq(int_fast64_t a, int_fast64_t b) {
-    return rsq(0, 0, size -1, a, b);
+    return rsq(0, 0, size - 1, a - 1, b - 1);
 }
 
 
@@ -83,32 +83,54 @@ int main() {
     std::vector<int_fast64_t> a;
     int_fast64_t num;
 
-    for (int i = 0; i < n; i++) {
+    for (int_fast64_t i = 0; i < n; i++) {
         std::cin >> num;
         a.push_back(num);
     }
     Tree tree = Tree(&a);
 
+    std::string command;
+    int_fast64_t i, j;
+    getline(std::cin, command);
 
-
-
-
-    tree.update(1, 100);
-
-    tree.rsq(2, 4);
-
-
-
-    
-
+    for (int row = 0; row < 1e6; ++row) {
+        std::cin >> command >> i >> j;
+        if (command == "sum") {
+            std::cout << tree.rsq(i, j) << std::endl;
+        } else if (command == "set") {
+            tree.update(i, j);
+        }
+    }
     return 0;
 }
 
 /*
-8
-1 2 3 4 5 0 0 0
+5
+1 2 3 4 5
+sum 2 5
+sum 1 5
+sum 1 4
+sum 2 4
+set 1 10
+set 2 3
+set 5 2
+sum 2 5
+sum 1 5
+sum 1 4
+sum 2 4
 */
 
+
+/*
+14
+15
+10
+9
+12
+22
+20
+10
+*/
 
 
 
