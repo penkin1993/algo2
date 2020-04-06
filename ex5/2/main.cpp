@@ -20,14 +20,13 @@ public:
     int_fast64_t rsq(int_fast64_t a, int_fast64_t b);
 
 private:
-    int_fast64_t size, x;
+    int_fast64_t x;
     std::vector<int_fast64_t> t;
 
     int_fast64_t rsq(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b);
 };
 
 Tree::Tree(std::vector<int64_t> *a) {
-    size = a->size();
     x = 1;
     while (x < a->size()) {
         x *= 2;
@@ -41,6 +40,13 @@ Tree::Tree(std::vector<int64_t> *a) {
     for (int_fast64_t v = x - 2; v >= 0; v--) {
         t[v] = t[2 * v + 1] + t[2 * v + 2];
     }
+
+    t.insert(t.end(), x - a->size(), 0);
+
+    //for (long long i : t) {
+    //    std::cout << i << " ";
+    //}
+    //std::cout << "\n";
 }
 
 void Tree::update(int_fast64_t i, int_fast64_t val) {
@@ -51,9 +57,15 @@ void Tree::update(int_fast64_t i, int_fast64_t val) {
         t.at(v) = t.at(2 * v + 1) + t.at(2 * v + 2);
     }
 
-    //for (long long i : t) {
-    //    std::cout << i << " ";
-    //}
+    /*for (long long i : t) {
+        std::cout << i << " ";
+    }
+    std::cout << "\n";*/
+}
+
+
+int_fast64_t Tree::rsq(int_fast64_t a, int_fast64_t b) {
+    return rsq(0, 0, x - 1, a - 1, b - 1);
 }
 
 
@@ -68,10 +80,6 @@ int_fast64_t Tree::rsq(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast6
     int_fast64_t m = (l + r) / 2;
 
     return rsq(2 * v + 1, l, m, a, b) + rsq(2 * v + 2, m + 1, r, a, b);
-}
-
-int_fast64_t Tree::rsq(int_fast64_t a, int_fast64_t b) {
-    return rsq(0, 0, size - 1, a - 1, b - 1);
 }
 
 
@@ -104,6 +112,8 @@ int main() {
     return 0;
 }
 
+
+
 /*
 5
 1 2 3 4 5
@@ -118,6 +128,7 @@ sum 2 5
 sum 1 5
 sum 1 4
 sum 2 4
+
 */
 
 
@@ -126,6 +137,7 @@ sum 2 4
 15
 10
 9
+
 12
 22
 20
