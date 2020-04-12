@@ -22,13 +22,16 @@ private:
 void Tree::add(int_fast64_t node_id) {
     parent.push_back(node_id - 1); // добавили новую врешину
     depth.push_back(depth[node_id - 1] + 1); // dfs
+
 }
 
 
 void Tree::pre_calc() {
     for (int_fast64_t k = 0; k < parent.size(); k++) {
+        jmp.emplace_back();
         jmp[k].push_back(parent[k]);
     }
+
     for (int_fast64_t k = 1; k < std::ceil(log(parent.size())) + 1; k++) {
         for (int_fast64_t v = 0; v < parent.size(); v++) {
             jmp[v].push_back(jmp[jmp[v][k - 1]][k - 1]);
