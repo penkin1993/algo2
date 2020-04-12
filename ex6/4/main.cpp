@@ -2,14 +2,8 @@
 #include <vector>
 #include <cmath>
 
-struct TreeNode {
-    explicit TreeNode(int_fast64_t _parent) : parent(_parent) {}
 
-    int_fast64_t parent;
-    int_fast64_t depth = -1;
-    //std::vector<int_fast64_t> children;
-    std::vector<int_fast64_t> jmp;
-};
+//explicit TreeNode(int_fast64_t _parent) : parent(_parent) {} // можно избавиться от этой структуры !!!!!!!!!!!!!!!!!!!!!!!
 
 class Tree {
 public:
@@ -20,39 +14,41 @@ public:
     int_fast64_t get_lca(int_fast64_t x, int_fast64_t y);
 
 private:
-    std::vector<TreeNode> nodes;
+    std::vector<int_fast64_t> parent = {0};
+    std::vector<int_fast64_t> depth = {0};
+    std::vector<std::vector<int_fast64_t>> jmp;
 };
 
 void Tree::add(int_fast64_t node_id) {
-    nodes.emplace_back(node_id - 1); // добавили новую врешину
-    nodes.back().parent = nodes[node_id - 1].depth + 1; // dfs
-    //nodes[node_id - 1].children.push_back(nodes.size() - 1); // сообщили родителю о новом ребенке
+    parent.push_back(node_id - 1); // добавили новую врешину
+    depth.push_back(depth[node_id - 1] + 1); // dfs
 }
 
 
 void Tree::pre_calc() {
-    for (auto &node : nodes) {
-        node.jmp.push_back(node.parent);
+    for (int_fast64_t k = 0; k < parent.size(); k++) {
+        jmp[k].push_back(parent[k]);
     }
-    for (int_fast64_t k = 1; k < std::ceil(log(nodes.size())) + 1; k++) {
-        for (auto &node : nodes) {
-            node.jmp.push_back(nodes[node.jmp[k - 1]].jmp[k - 1]);
+    for (int_fast64_t k = 1; k < std::ceil(log(parent.size())) + 1; k++) {
+        for (int_fast64_t v = 0; v < parent.size(); v++) {
+            jmp[v].push_back(jmp[jmp[v][k - 1]][k - 1]);
         }
     }
+
 }
 
 int_fast64_t Tree::get_lca(int_fast64_t x, int_fast64_t y) {
     x -= 1;
     y -= 1;
-    if (nodes[x].depth < nodes[y].depth) {
+    if (depth[x] < depth[y]) {
         std::swap(x, y);
     }
     int_fast64_t delta = x - y;
 
 
-    for (int_fast64_t k = std::ceil(log(nodes.size())); k > 0; k--) { // поднялись на одинаковую глубину
+    for (int_fast64_t k = std::ceil(log(parent.size())); k > 0; k--) { // поднялись на одинаковую глубину
         if (delta >= 1 << k) {
-            x = nodes[x].jmp[k];
+            x = jmp[x][k];
             delta -= 1 << k;
         }
     }
@@ -61,15 +57,15 @@ int_fast64_t Tree::get_lca(int_fast64_t x, int_fast64_t y) {
     }
 
     int_fast64_t _x, _y;
-    for (int_fast64_t k = std::ceil(log(nodes.size())); k > 0; k--) {
-        _x = nodes[x].jmp[k];
-        _y = nodes[y].jmp[k];
-        if (_x != y){
+    for (int_fast64_t k = std::ceil(log(parent.size())); k > 0; k--) {
+        _x = jmp[x][k];
+        _y = jmp[y][k];
+        if (_x != y) {
             x = _x;
             y = _y;
         }
     }
-    return nodes[x].jmp[0];
+    return jmp[x][0] + 1;
 }
 
 
@@ -87,6 +83,7 @@ int main() {
 
     tree.pre_calc();
     std::cin >> m;
+
     for (int_fast64_t i = 0; i < m; i++) {
         std::cin >> x >> y;
         std::cout << tree.get_lca(x, y) << "\n";
