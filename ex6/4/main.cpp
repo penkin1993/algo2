@@ -1,60 +1,73 @@
 #include <iostream>
+#include <vector>
+#include <cmath>
 
-// Узел бинарного дерева
 struct TreeNode {
-    explicit TreeNode(int _value) : value(_value) {}
-    int value = 0;
-    TreeNode *parent = nullptr;
+    explicit TreeNode(int_fast64_t _parent) : parent(_parent) {}
+
+    int_fast64_t parent;
+    int_fast64_t depth = - 1;
+    std::vector<int_fast64_t> children;
+    std::vector<int_fast64_t> jmp;
 };
 
-// TODO: Уже рашал ???
+class Tree {
+public:
+    void add(int_fast64_t node_id);
 
-// 1. TODO: DFS
-// 2. TODO: precalc
-// 3. TODO: rest
+    void pre_calc();
 
+    int_fast64_t get_lca(int_fast64_t x, int_fast64_t y);
 
+private:
+    std::vector<TreeNode> nodes;
+};
 
-void precalc(p[]) {
-    dfs(root, d) //подсчитываем глубины
-    for (int_fast64_t v = 0; v < n; v++) {
-        jmp[v][0] = p[v];
-    }
-    for (k = 1; k < log(n); k++) {
-        jmp[v][k] = jmp[jmp[v][k - 1]][k - 1]
-    }
+void Tree::add(int_fast64_t node_id) {
+    nodes.emplace_back(node_id - 1); // добавили новую врешину
+    nodes.back().parent = nodes[node_id -1].depth + 1; // dfs
+    nodes[node_id - 1].children.push_back(nodes.size() - 1); // сообщили родителю о новом ребенке
 }
 
 
+void Tree::pre_calc() {
+    for (auto & node : nodes) {
+        node.jmp.push_back(node.parent);
+    }
+    for (int_fast64_t k = 1; k < std::ceil(log(nodes.size())) + 1; k++) {
+        for (auto & node : nodes) {
+            node.jmp.push_back(nodes[node.jmp[k-1]].jmp[k-1]);
+        }
+    }
+}
 
-lca(u, v)
-if d[u] < d[v]
-swap(u, v)
-delta = d[u] – d[v]
-for k = log(𝑛) to 0
-if delta >= 2
-𝑘
-        u = jmp[u][k]
-delta -= 2
-𝑘
-if u = v
-return u
+int_fast64_t get_lca(int_fast64_t x, int_fast64_t y){
 
 
-        lca(u, v)
-…
-for k = log(𝑛) to 0
-u’ = jmp[u][k]
-v’ = jmp[v][k]
-if u’ ≠ v’
-u = u’, v = v’
-return jmp[u, 0] //
 
+
+}
 
 
 
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
+    int_fast64_t n, m;
+    int_fast64_t x, y;
+    Tree tree = Tree();
+
+    std::cin >> n;
+    for (int_fast64_t i = 0; i < n - 1; i++) {
+        std::cin >> x;
+        tree.add(x);
+    }
+
+    tree.pre_calc();
+    std::cin >> m;
+    for (int_fast64_t i = 0; i < m; i++) {
+        std::cin >> x >> y;
+        std::cout << tree.get_lca(x, y) << "\n";
+    }
     return 0;
 }
