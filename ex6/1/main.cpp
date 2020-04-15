@@ -2,7 +2,9 @@
 #include <vector>
 #include <cmath>
 
+
 class Tree {
+
 public:
     explicit Tree(int_fast64_t n);
 
@@ -29,6 +31,8 @@ private:
     std::vector<int_fast64_t> a;
 
     std::vector<int_fast64_t> t;
+
+    int_fast64_t get_check(int_fast64_t i, int_fast64_t j, int_fast64_t k);
 };
 
 Tree::Tree(int_fast64_t n) {
@@ -77,42 +81,23 @@ void Tree::add(int_fast64_t i, int_fast64_t j, int_fast64_t k, int_fast64_t val)
     }
 }
 
+int_fast64_t Tree::get_check(int_fast64_t i, int_fast64_t j, int_fast64_t k) {
+    if ((i >= 0) && (j >= 0) && (k >= 0)) {
+        return get(i, j, k);
+    } else {
+        return 0;
+    }
+}
+
 int_fast64_t Tree::rsq(int_fast64_t i_l, int_fast64_t j_l, int_fast64_t k_l,
                        int_fast64_t i_r, int_fast64_t j_r, int_fast64_t k_r) {
 
     int_fast64_t res = get(i_r, j_r, k_r);
-    if ((i_l == 0) && (j_l == 0) && (k_l == 0)) {
-        return res;
-
-    } else if ((i_l == 0) && (j_l != 0) && (k_l != 0)) {
-        res -= get(i_r, j_r, k_l - 1);
-        res -= get(i_r, j_l - 1, k_r);
-        res += get(i_r, j_l - 1, k_l - 1);
-
-    } else if ((i_l != 0) && (j_l == 0) && (k_l != 0)) {
-        res -= get(i_r, j_r, k_l - 1);
-        res -= get(i_l - 1, j_r, k_r);
-        res += get(i_l - 1, j_r, k_l - 1);
-
-    } else if ((i_l != 0) && (j_l != 0) && (k_l == 0)) {
-        res -= get(i_l - 1, j_r, k_r);
-        res -= get(i_r, j_l - 1, k_r);
-        res += get(i_l - 1, j_l - 1, k_r);
-
-
-    } else if ((i_l == 0) && (j_l == 0)) {
-        res -= get(i_r, j_r, k_l - 1);
-    } else if (j_l == 0) { //&& (k_l == 0)
-        res -= get(i_l - 1, j_r, k_r);
-    } else if (i_l == 0) { // && (k_l == 0)
-        res -= get(i_r, j_l - 1, k_r);
-
-
-    } else {
-        res -= (get(i_l - 1, j_r, k_r) + get(i_r, j_l - 1, k_r) + get(i_r, j_r, k_l - 1));
-        res += get(i_l - 1, j_l - 1, k_r) + get(i_r, j_l - 1, k_l - 1) + get(i_l - 1, j_r, k_l - 1);
-        res -= get(i_l - 1, j_l - 1, k_l - 1);
-    }
+    res -= (get_check(i_l - 1, j_r, k_r) + get_check(i_r, j_l - 1, k_r) + get_check(i_r, j_r, k_l - 1));
+    res += (get_check(i_l - 1, j_l - 1, k_r) +
+            get_check(i_r, j_l - 1, k_l - 1) +
+            get_check(i_l - 1, j_r, k_l - 1));
+    res -= get_check(i_l - 1, j_l - 1, k_l - 1);
     return res;
 }
 
