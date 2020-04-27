@@ -2,129 +2,173 @@
 #include <vector>
 #include <queue>
 
-int_fast64_t INF_FLOW = 1e6;
+int INF = 1e6;
 
 struct Edge {
-    int_fast64_t from, to;
-    int_fast64_t flow, capacity;
-    Edge *rev_node = nullptr;
+    int from{}, to{};
+    int flow{}, capacity{};
+    int rev_node = 0;
 };
 
 class Graph {
 
 public:
-    explicit Graph(
-            int_fast64_t n_nodes); // добавть top 5 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    void add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity);
-
-    int_fast64_t get_max_flow(int_fast64_t start_node, int_fast64_t end_node);
+    explicit Graph(int n_nodes);
 
     void get_all_flows();
 
+    void add_edge(int from, int to, int capacity);
+
+    int get_max_flow(int start_node, int end_node);
+
+
 private:
-    int_fast64_t n_nodes;
-    std::vector<int_fast64_t> dist;
+    int n_nodes;
+    std::vector<int> dist;
     std::vector<std::vector<Edge>> nodes; // все вершины в графе
-    std::vector<Edge *> edge_buffer;
+    std::vector<std::pair<int, int>> edge_buffer;
 
-    bool bfs(int_fast64_t start_node, int_fast64_t end_node);
+    bool bfs(int start_node, int end_node);
 
-    int_fast64_t dfs(int_fast64_t start_node, int_fast64_t end_node, int_fast64_t min_capacity);
+    int dfs(int start_node, int end_node, int min_capacity);
 };
 
-Graph::Graph(int_fast64_t n_nodes_) {
+Graph::Graph(int n_nodes_) {
     n_nodes = n_nodes_;
-    dist.emplace_back(n_nodes_);
-    nodes.emplace_back(n_nodes_);
+    for (int i = 0; i < n_nodes_; i++) {
+        dist.push_back(-1);
+        nodes.emplace_back();
+    }
 }
 
-void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity) {
-    Edge e1{from, to, 0, capacity, nullptr}; // прямое ребро
-    Edge e2{to, from, 0, 0, &e2}; // обратное ребро
-    edge_buffer.push_back(&e1);
-    e1.rev_node = &e2;
+void Graph::add_edge(int from, int to, int capacity) {
+    Edge e1{from, to, 0, capacity, 0}; // прямое ребро
+    Edge e2{to, from, 0, capacity, 0}; // обратное ребро
     nodes[from].push_back(e1);
     nodes[to].push_back(e2);
+
+    nodes[from].back().rev_node = nodes[to].size() - 1;
+    nodes[to].back().rev_node = nodes[from].size() - 1;
+    edge_buffer.emplace_back(from, nodes[from].size());
+
 }
 
-bool Graph::bfs(int_fast64_t start_node, int_fast64_t end_node) {
-    for (int_fast64_t i = 1; i <= n_nodes; i++) {
-        dist[i] = -1;
+int Graph::dfs(int start_node, int end_node, int min_capacity) {
+    if (min_capacity == 0) {
+        return 0;
     }
-    std::queue<int> queue;
-    queue.push(start_node);
-    dist[start_node] = 0;
-
-    while (!queue.empty()) {
-        int_fast64_t next_node = queue.front();
-        queue.pop();
-        for (auto &node : nodes[next_node]) {
-            int_fast64_t join_edge = node.to;
-
-            if ((dist[join_edge] == -1) && (node.flow < node.capacity)) {
-                queue.push(join_edge);
-                dist[join_edge] = dist[join_edge] + 1;
-            }
-        }
+    if (start_node == end_node) {
+        return min_capacity;
     }
-    return dist[end_node] != -1;
-}
+    int next_flow;
+    for (auto &node : nodes[start_node]) {
+        int join_node = node.to;
 
-int_fast64_t Graph::dfs(int_fast64_t start_node, int_fast64_t end_node, int_fast64_t min_capacity) {
-    if (min_capacity == 0) return 0;
-    if (start_node == end_node) return min_capacity;
-    int_fast64_t current_node = start_node;
-
-    for (auto &node : nodes[current_node]) {
-        int_fast64_t join_edge = node.to;
-        if (dist[join_edge] != dist[current_node] + 1) {
+        if (dist[join_node] != dist[start_node] + 1) {
             continue;
         }
-        int_fast64_t next_flow = dfs(join_edge, end_node, std::min(min_capacity, node.capacity - node.flow));
+        next_flow = dfs(join_node, end_node, std::min(min_capacity, node.capacity - node.flow));
+
         if (next_flow > 0) {
             next_flow = std::min(next_flow, node.capacity - node.flow);
             node.flow += next_flow;
-            node.rev_node->flow -= next_flow;
+
+            nodes[node.to][node.rev_node].flow -= next_flow;
             return next_flow;
         }
     }
     return 0;
 }
 
-int_fast64_t Graph::get_max_flow(int_fast64_t start_node, int_fast64_t end_node) {
-    int_fast64_t flow = 0;
+int Graph::get_max_flow(int start_node, int end_node) {
+
+    int flow = 0;
+    int add_flow;
     while (bfs(start_node, end_node)) {
         while (true) {
-            int_fast64_t add_flow = dfs(start_node, end_node, INF_FLOW);
-            if (add_flow == 0) break;
+            add_flow = dfs(start_node, end_node, INF);
+            if (add_flow == 0) {
+                break;
+            }
             flow += add_flow;
         }
     }
+    //std::cout << flow << " \n";
     return flow;
 }
 
 void Graph::get_all_flows() {
     for (auto &edge : edge_buffer) {
-        std::cout << edge->flow << "\n";
+        std::cout << nodes[edge.first][edge.second - 1].flow << "\n";
     }
 }
 
+bool Graph::bfs(int start_node, int end_node) {
+    for (int i = 0; i < n_nodes; i++) {
+        dist[i] = -1;
+    }
+
+    std::queue<int> queue;
+    queue.push(start_node);
+    dist[start_node] = 0;
+
+    while (!queue.empty()) {
+        int next_node = queue.front();
+        queue.pop();
+        for (auto &node : nodes[next_node]) {
+            int join_edge = node.to;
+
+            if ((dist[join_edge] == -1) && (node.flow < node.capacity)) {
+                queue.push(join_edge);
+
+                dist[join_edge] = dist[next_node] + 1;
+            }
+        }
+    }
+    return bool(dist[end_node] != -1);
+}
+
+
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
-    int_fast64_t n_nodes, n_edges;
+    int n_nodes, n_edges;
     std::cin >> n_nodes;
     Graph graph = Graph(n_nodes);
 
     std::cin >> n_edges;
-    int_fast64_t from, to, val;
+    int from, to, val;
 
-    for (int_fast64_t i = 0; i < n_edges; i++) {
+    for (int i = 0; i < n_edges; i++) {
         std::cin >> from >> to >> val;
-        graph.add_edge(from, to, val);
+        graph.add_edge(from - 1, to - 1, val);
     }
-    int_fast64_t res = graph.get_max_flow(1, n_edges);
-    std::cout << res;
+
+
+    int res = graph.get_max_flow(0, n_nodes - 1);
+    std::cout << res << "\n";
     graph.get_all_flows();
 
     return 0;
 }
+
+/*
+2
+2
+1 2 1
+2 1 3
+
+7
+11
+1 2 7
+1 2 7
+1 3 7
+1 4 7
+2 3 7
+2 5 7
+3 6 7
+4 7 7
+5 4 7
+5 6 7
+6 7 7
+
+ */
