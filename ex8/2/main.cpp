@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <list>
+
 
 int_fast64_t INF = 1e6;
 
@@ -23,8 +25,7 @@ public:
 
     Graph &operator=(Graph &&) = delete;
 
-
-    void get_all_flows();
+    void get_ans(int_fast64_t start_node, int_fast64_t res);
 
     void add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity);
 
@@ -32,12 +33,12 @@ public:
 
 
 private:
+    int_fast64_t counter = 1;
     int_fast64_t n_nodes;
     std::vector<int_fast64_t> dist;
     std::vector<std::vector<Edge>> nodes; // все вершины в графе
     std::vector<int_fast64_t> first_node_del;
-
-    std::vector<std::pair<int_fast64_t, int_fast64_t>> edge_buffer;
+    std::vector<int_fast64_t> edge_buffer;
 
     bool bfs(int_fast64_t start_node, int_fast64_t end_node);
 
@@ -46,23 +47,10 @@ private:
 
 Graph::Graph(int_fast64_t n_nodes_) {
     n_nodes = n_nodes_;
-    for (int_fast64_t i = 0; i < n_nodes_; i++) {
-        dist.push_back(-1);
-        nodes.emplace_back();
-        first_node_del.push_back(0);
-    }
-}
-
-void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity) {
-    Edge e1{from, to, 0, capacity, 0}; // прямое ребро
-    Edge e2{to, from, 0, capacity, 0}; // обратное ребро
-    nodes[from].push_back(e1);
-    nodes[to].push_back(e2);
-
-    nodes[from].back().rev_node = nodes[to].size() - 1;
-    nodes[to].back().rev_node = nodes[from].size() - 1;
-    edge_buffer.emplace_back(from, nodes[from].size());
-
+    nodes.insert(nodes.end(), n_nodes_, std::vector<Edge>());
+    dist.insert(dist.end(), n_nodes_, -1);
+    first_node_del.insert(first_node_del.end(), n_nodes_, 0);
+    edge_buffer.insert(edge_buffer.end(), n_nodes_ * n_nodes_, -1);
 }
 
 int_fast64_t Graph::dfs(int_fast64_t start_node, int_fast64_t end_node, int_fast64_t min_capacity) {
@@ -136,11 +124,51 @@ int_fast64_t Graph::get_max_flow(int_fast64_t start_node, int_fast64_t end_node)
     return flow;
 }
 
-void Graph::get_all_flows() {
-    for (auto &edge : edge_buffer) {
-        std::cout << nodes[edge.first][edge.second - 1].flow << "\n";
+void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity) {
+    Edge e1{from, to, 0, capacity, 0}; // прямое ребро
+    Edge e2{to, from, 0, capacity, 0}; // обратное ребро
+    nodes[from].push_back(e1);
+    nodes[to].push_back(e2);
+
+    nodes[from].back().rev_node = nodes[to].size() - 1;
+    nodes[to].back().rev_node = nodes[from].size() - 1;
+    edge_buffer[from + n_nodes * to] = counter;
+    counter++;
+}
+
+
+void Graph::get_ans(int_fast64_t start_node, int_fast64_t res) {
+    int_fast64_t local_counter = 0;
+    std::list<int_fast64_t> is_in_split;
+
+    std::queue<int_fast64_t> queue;
+    queue.push(start_node);
+
+    while (!queue.empty()) {
+        int_fast64_t next_node = queue.front();
+        queue.pop();
+        for (auto &node : nodes[next_node]) {
+            int_fast64_t current_ind = node.from + n_nodes * node.to;
+            if (edge_buffer[current_ind] != -1) {
+                if (node.flow < node.capacity) {
+                    queue.push(node.to);
+                } else {
+                    local_counter++;
+                    is_in_split.push_back(edge_buffer[current_ind]);
+                    edge_buffer[current_ind] = -1;
+                }
+            }
+        }
+    }
+    //is_in_split.unique();
+    std::cout << local_counter << " " << res << "\n";
+    for (auto &i:is_in_split) {
+        std::cout << i << " ";
+
     }
 }
+
+
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
@@ -157,8 +185,19 @@ int main() {
     }
 
     int_fast64_t res = graph.get_max_flow(0, n_nodes - 1);
-    std::cout << res << "\n";
-    graph.get_all_flows();
+    graph.get_ans(0, res);
 
     return 0;
 }
+
+
+
+/*
+3 3
+1 2 3
+1 3 5
+3 2 7
+
+2 8
+1 2
+ */
