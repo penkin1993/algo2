@@ -129,8 +129,6 @@ void Graph::get_ans(int_fast64_t start_node, int_fast64_t end_node) {
             }
         }
     }
-
-    is_in_split.unique();
     is_in_split.sort();
     std::cout << is_in_split.size() << " " << res << "\n";
     for (auto &i:is_in_split) {
