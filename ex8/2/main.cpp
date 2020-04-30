@@ -25,14 +25,13 @@ public:
 
     Graph &operator=(Graph &&) = delete;
 
-    void get_ans(int_fast64_t start_node, int_fast64_t res);
-
     void add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity);
 
-    int_fast64_t get_max_flow(int_fast64_t start_node, int_fast64_t end_node);
+    void get_ans(int_fast64_t start_node, int_fast64_t end_node);
 
 
 private:
+    int_fast64_t res = 0;
     int_fast64_t counter = 1;
     int_fast64_t n_nodes;
     std::vector<int_fast64_t> dist;
@@ -91,6 +90,7 @@ bool Graph::bfs(int_fast64_t start_node, int_fast64_t end_node) {
     queue.push(start_node);
     dist[start_node] = 0;
 
+
     while (!queue.empty()) {
         int_fast64_t next_node = queue.front();
         queue.pop();
@@ -99,7 +99,6 @@ bool Graph::bfs(int_fast64_t start_node, int_fast64_t end_node) {
 
             if ((dist[join_node] == -1) && (node.flow < node.capacity)) {
                 queue.push(join_node);
-
                 dist[join_node] = dist[next_node] + 1;
             }
         }
@@ -107,10 +106,8 @@ bool Graph::bfs(int_fast64_t start_node, int_fast64_t end_node) {
     return bool(dist[end_node] != -1);
 }
 
+void Graph::get_ans(int_fast64_t start_node, int_fast64_t end_node) {
 
-int_fast64_t Graph::get_max_flow(int_fast64_t start_node, int_fast64_t end_node) {
-
-    int_fast64_t flow = 0;
     int_fast64_t add_flow;
     while (bfs(start_node, end_node)) {
         while (true) {
@@ -118,10 +115,27 @@ int_fast64_t Graph::get_max_flow(int_fast64_t start_node, int_fast64_t end_node)
             if (add_flow == 0) {
                 break;
             }
-            flow += add_flow;
+            res += add_flow;
         }
     }
-    return flow;
+    std::list<int_fast64_t> is_in_split;
+    for (int_fast64_t i = 0; i < n_nodes; i++) {
+        for (int_fast64_t j = 0; j < n_nodes; j++) {
+            if ((dist[i] != -1) && (dist[j] == -1) && (edge_buffer[i + n_nodes * j] != -1)) {
+                is_in_split.push_back(edge_buffer[i + n_nodes * j]);
+            }
+            if ((dist[i] == -1) && (dist[j] != -1) && (edge_buffer[i + n_nodes * j] != -1)) {
+                is_in_split.push_back(edge_buffer[i + n_nodes * j]);
+            }
+        }
+    }
+
+    is_in_split.unique();
+    is_in_split.sort();
+    std::cout << is_in_split.size() << " " << res << "\n";
+    for (auto &i:is_in_split) {
+        std::cout << i << " ";
+    }
 }
 
 void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity) {
@@ -135,40 +149,6 @@ void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity) 
     edge_buffer[from + n_nodes * to] = counter;
     counter++;
 }
-
-
-void Graph::get_ans(int_fast64_t start_node, int_fast64_t res) {
-    int_fast64_t local_counter = 0;
-    std::list<int_fast64_t> is_in_split;
-
-    std::queue<int_fast64_t> queue;
-    queue.push(start_node);
-
-    while (!queue.empty()) {
-        int_fast64_t next_node = queue.front();
-        queue.pop();
-        for (auto &node : nodes[next_node]) {
-            int_fast64_t current_ind = node.from + n_nodes * node.to;
-            if (edge_buffer[current_ind] != -1) {
-                if (node.flow < node.capacity) {
-                    queue.push(node.to);
-                } else {
-                    local_counter++;
-                    is_in_split.push_back(edge_buffer[current_ind]);
-                    edge_buffer[current_ind] = -1;
-                }
-            }
-        }
-    }
-    //is_in_split.unique();
-    std::cout << local_counter << " " << res << "\n";
-    for (auto &i:is_in_split) {
-        std::cout << i << " ";
-
-    }
-}
-
-
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
@@ -184,20 +164,7 @@ int main() {
         graph.add_edge(from - 1, to - 1, val);
     }
 
-    int_fast64_t res = graph.get_max_flow(0, n_nodes - 1);
-    graph.get_ans(0, res);
+    graph.get_ans(0, n_nodes - 1);
 
     return 0;
 }
-
-
-
-/*
-3 3
-1 2 3
-1 3 5
-3 2 7
-
-2 8
-1 2
- */
