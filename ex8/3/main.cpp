@@ -8,6 +8,7 @@ struct Edge {
     int_fast64_t from{}, to{};
     int_fast64_t flow{}, capacity{};
     int_fast64_t rev_node = 0;
+    int_fast64_t  index{};
 };
 
 class Graph {
@@ -33,8 +34,7 @@ private:
     std::vector<int_fast64_t> dist;
     std::vector<std::vector<Edge>> nodes; // все вершины в графе
     std::vector<int_fast64_t> first_node_del;
-
-    std::vector<std::pair<int_fast64_t, int_fast64_t>> edge_buffer;
+    std::vector<std::pair<int_fast64_t, int_fast64_t >> node_path;
 
     bool bfs(int_fast64_t start_node, int_fast64_t end_node);
 
@@ -47,18 +47,22 @@ Graph::Graph(int_fast64_t n_nodes_) {
         dist.push_back(-1);
         nodes.emplace_back();
         first_node_del.push_back(0);
+        node_path.emplace_back(std::make_pair(0, 0));
     }
 }
 
 void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity) {
-    Edge e1{from, to, 0, capacity, 0}; // прямое ребро
-    Edge e2{to, from, 0, 0, 0}; // обратное ребро
+    Edge e1{from, to, 0, capacity, 0, 0}; // прямое ребро
+    Edge e2{to, from, 0, 0, 0, 0 }; // обратное ребро
+    e1.index = nodes[from].size();
+    e2.index = nodes[to].size();
+
+
     nodes[from].push_back(e1);
     nodes[to].push_back(e2);
 
     nodes[from].back().rev_node = nodes[to].size() - 1;
     nodes[to].back().rev_node = nodes[from].size() - 1;
-    edge_buffer.emplace_back(from, nodes[from].size());
 
 }
 
@@ -79,7 +83,17 @@ int_fast64_t Graph::dfs(int_fast64_t start_node, int_fast64_t end_node, int_fast
             next_flow = dfs(join_node, end_node, std::min(min_capacity, node.capacity - node.flow));
             if (next_flow > 0) {
                 node.flow += next_flow;
+
+                if (node.flow == 1){
+                    if (nodes[start_node][node_path[start_node].first].flow != 1){
+                        node_path[start_node].first = node.index;
+                    } else{
+                        node_path[start_node].second = node.index;
+                    }
+                }
+
                 nodes[node.to][node.rev_node].flow -= next_flow;
+
                 return next_flow;
             }
         }
@@ -115,9 +129,9 @@ bool Graph::bfs(int_fast64_t start_node, int_fast64_t end_node) {
     }
     int s = 0;
     for (auto &i : nodes[end_node]) {
-        s += i.flow;
+        s += -i.flow;
     }
-    return !((s == 2) || (bool(dist[end_node] != -1)));
+    return ((s != 2) || (bool(dist[end_node] != -1)));
 }
 
 
@@ -134,22 +148,25 @@ void Graph::get_ans(int_fast64_t start_node, int_fast64_t end_node) {
             flow += add_flow;
         }
     }
+
     if (flow == 2) {
+        std::cout << "YES" << "\n";
         for (int j = 0; j < 2; j++) {
-            std::cout << "YES" << "\n";
-            std::cout << start_node << " ";
+            int_fast64_t next_current_node;
             int_fast64_t current_node = start_node;
             while (current_node != end_node) {
-                for (auto &node : nodes[current_node]) {
-                    if (node.flow == 1) {
-                        current_node = node.to;
-                        node.flow = 0;
-                        std::cout << current_node << " ";
-                        break;
-                    }
+                std::cout << current_node + 1 << " ";
+                if (nodes[current_node][node_path[current_node].first].flow == 1){
+                    next_current_node = nodes[current_node][node_path[current_node].first].to;
+                    nodes[current_node][node_path[current_node].first].flow = 0;
+                    current_node = next_current_node;
+                } else{
+                    next_current_node = nodes[current_node][node_path[current_node].second].to;
+                    nodes[current_node][node_path[current_node].second].flow = 0;
+                    current_node = next_current_node;
                 }
             }
-            std::cout << end_node << "\n";
+            std::cout << end_node + 1 <<  "\n";
         }
 
     } else {
