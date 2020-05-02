@@ -33,6 +33,7 @@ public:
 private:
     int_fast64_t n_nodes;
     int_fast64_t cum_cost = 0;
+    std::vector<int_fast64_t> node_flow_ind;
     std::vector<int_fast64_t> cost;
     std::vector<std::vector<Edge>> nodes; // все вершины в графе
     std::vector<std::pair<int_fast64_t, int_fast64_t>> min_path_nodes;
@@ -46,6 +47,7 @@ Graph::Graph(int_fast64_t n_nodes_) {
     for (int_fast64_t i = 0; i < n_nodes_; i++) {
         nodes.emplace_back();
         cost.push_back(INF);
+        node_flow_ind.push_back(-1);
         min_path_nodes.emplace_back(-1, -1);
     }
 }
@@ -126,6 +128,10 @@ bool Graph::bellman_ford(int_fast64_t start_node, int_fast64_t end_node) {
         nodes[ind_node][ind_edge].flow += max_flow;
         nodes[next_node][nodes[ind_node][ind_edge].rev_node].flow -= max_flow;
         next_node = ind_node;
+
+        if (nodes[ind_node][ind_edge].flow == 1) {
+            node_flow_ind[ind_node] = nodes[ind_node][ind_edge].index;
+        }
     }
     return true;
 }
@@ -137,14 +143,10 @@ int_fast64_t Graph::get_max_flow(int_fast64_t start_node, int_fast64_t end_node)
     return cum_cost;
 }
 
-void Graph::print_ind_edges(){
+void Graph::print_ind_edges() {
     int_fast64_t n = (n_nodes - 2) / 2;
-    for (int_fast64_t i = 1; i < n + 1; i++){
-        for (auto & node : nodes[i]){
-            if (node.flow == 1){
-                std::cout << i << " " << node.index << "\n";
-            }
-        }
+    for (int_fast64_t i = 1; i < n + 1; i++) {
+        std::cout << i << " " << nodes[i][node_flow_ind[i]].index << "\n";
     }
 }
 
