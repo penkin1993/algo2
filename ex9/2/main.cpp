@@ -105,19 +105,9 @@ bool Graph::bellman_ford(int_fast64_t start_node, int_fast64_t end_node) {
 
     // протолкнуть новый поток и прибавить его стоимость
 
-    int_fast64_t max_flow = INF;
+    int_fast64_t max_flow = 1;
+
     int_fast64_t next_node = end_node;
-
-    while (next_node != start_node) { // найти за линию максимум его пропускной способности
-        int_fast64_t ind_node = min_path_nodes[next_node].first;
-        int_fast64_t ind_edge = min_path_nodes[next_node].second;
-
-        int_fast64_t flow = nodes[ind_node][ind_edge].capacity - nodes[ind_node][ind_edge].flow;
-        max_flow = std::min(flow, max_flow);
-        next_node = ind_node;
-    }
-
-    next_node = end_node;
     while (next_node != start_node) { // протолкнуть поток
         int_fast64_t ind_node = min_path_nodes[next_node].first;
         int_fast64_t ind_edge = min_path_nodes[next_node].second;
@@ -139,7 +129,9 @@ bool Graph::bellman_ford(int_fast64_t start_node, int_fast64_t end_node) {
 
 int_fast64_t Graph::get_max_flow(int_fast64_t start_node, int_fast64_t end_node) {
     cum_cost = 0;
-    while (bellman_ford(start_node, end_node)) {}
+    for (int i = 0; i < (n_nodes - 2) / 2; i++) {
+        bellman_ford(start_node, end_node);
+    }
     return cum_cost;
 }
 
@@ -179,3 +171,7 @@ int main() {
 
     return 0;
 }
+
+/*
+c
+*/
