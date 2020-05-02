@@ -2,11 +2,12 @@
 #include <vector>
 #include <queue>
 
-int_fast64_t INF = 1e6;
+int_fast64_t INF = 1e9;
 
 struct Edge {
     int_fast64_t from{}, to{};
     int_fast64_t flow{}, capacity{}, cost{};
+    int_fast64_t index = 0;
     int_fast64_t rev_node = 0;
 };
 
@@ -30,41 +31,110 @@ public:
 
 private:
     int_fast64_t n_nodes;
-    std::vector<int_fast64_t> dist;
+    int_fast64_t cum_cost = 0;
+    std::vector<int_fast64_t> cost;
     std::vector<std::vector<Edge>> nodes; // все вершины в графе
-    std::vector<int_fast64_t> first_node_del;
+    std::vector<std::pair<int_fast64_t, int_fast64_t>> min_path_nodes;
 
-    std::vector<std::pair<int_fast64_t, int_fast64_t>> edge_buffer;
-
-    bool bfs(int_fast64_t start_node, int_fast64_t end_node);
-
-    int_fast64_t dfs(int_fast64_t start_node, int_fast64_t end_node, int_fast64_t min_capacity);
+    // индекс вершины и ребра в ней, с которой можно попасть в данную с наименьшей стоимостью
+    bool bellman_ford(int_fast64_t start_node, int_fast64_t end_node);
 };
 
 Graph::Graph(int_fast64_t n_nodes_) {
     n_nodes = n_nodes_;
     for (int_fast64_t i = 0; i < n_nodes_; i++) {
-        dist.push_back(-1);
         nodes.emplace_back();
-        first_node_del.push_back(0);
+        cost.push_back(INF);
+        min_path_nodes.emplace_back(-1, -1);
     }
 }
 
-void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity, int_fast64_t cost) {
-    Edge e1{from, to, 0, capacity, cost}; // прямое ребро
-    Edge e2{to, from, 0, 0, -cost}; // обратное ребро
+void Graph::add_edge(int_fast64_t from, int_fast64_t to, int_fast64_t capacity, int_fast64_t cost_) {
+    Edge e1{from, to, 0, capacity, cost_}; // прямое ребро
+    Edge e2{to, from, 0, 0, -cost_}; // обратное ребро
     nodes[from].push_back(e1);
     nodes[to].push_back(e2);
 
+    nodes[from].back().index = nodes[from].size() - 1;
+    nodes[to].back().index = nodes[to].size() - 1;
+
     nodes[from].back().rev_node = nodes[to].size() - 1;
     nodes[to].back().rev_node = nodes[from].size() - 1;
-    edge_buffer.emplace_back(from, nodes[from].size());
 }
 
 
+bool Graph::bellman_ford(int_fast64_t start_node, int_fast64_t end_node) {
+    for (int_fast64_t i = 0; i < n_nodes; i++) {
+        cost[i] = INF;
+
+        min_path_nodes[i].first = -1;
+        min_path_nodes[i].second = -1;
+    }
+
+    std::queue<int_fast64_t> queue;
+    std::vector<bool> is_in_queue(n_nodes, false); // вспомогательный массив на проверку элемента в очереди
+
+    queue.push(start_node);
+    cost[start_node] = 0;
+
+    while (!queue.empty()) {
+        int_fast64_t next_node = queue.front();
+        queue.pop();
+        is_in_queue[next_node] = false;
+
+        for (auto &edge : nodes[next_node]) {
+            int_fast64_t sum_cost = cost[edge.from] + edge.cost;
+            if ((edge.flow < edge.capacity) && (cost[edge.to] > sum_cost)) {
+                cost[edge.to] = sum_cost; // обновить стоимость
+                min_path_nodes[edge.to] = std::make_pair(edge.from, edge.index);
+                // присвоить ссылку на ребро по которому пришли
+
+                if (!is_in_queue[edge.to]) {
+                    queue.push(edge.to);// засунуть в очередь
+                    is_in_queue[edge.to] = true;
+                }
+            }
+        }
+    }
+    if (cost[end_node] == INF){ // условие выхода из функции*/
+        return false;
+    }
+
+    // протолкнуть новый поток и прибавить его стоимость
+
+    int_fast64_t max_flow = INF;
+    int_fast64_t next_node = end_node;
+
+    while (next_node != start_node) { // найти за линию максимум его пропускной способности
+        int_fast64_t ind_node = min_path_nodes[next_node].first;
+        int_fast64_t ind_edge = min_path_nodes[next_node].second;
+
+        int_fast64_t flow = nodes[ind_node][ind_edge].capacity - nodes[ind_node][ind_edge].flow;
+        max_flow = std::min(flow, max_flow);
+        next_node = ind_node;
+    }
+
+    next_node = end_node;
+    while (next_node != start_node) { // протолкнуть поток
+        int_fast64_t ind_node = min_path_nodes[next_node].first;
+        int_fast64_t ind_edge = min_path_nodes[next_node].second;
+
+        cum_cost += max_flow * nodes[ind_node][ind_edge].cost;
+
+        // увеличить поток !!!!
+        nodes[ind_node][ind_edge].flow += max_flow;
+        nodes[next_node][nodes[ind_node][ind_edge].rev_node].flow -= max_flow;
+        next_node = ind_node;
+    }
+    return true;
+}
 
 
-
+int_fast64_t Graph::get_max_flow(int_fast64_t start_node, int_fast64_t end_node) {
+    cum_cost = 0;
+    while (bellman_ford(start_node, end_node)){}
+    return cum_cost;
+}
 
 
 int main() {
