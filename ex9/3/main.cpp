@@ -26,8 +26,7 @@ public:
 
     void add_edge(int_fast32_t from, int_fast32_t to, int_fast32_t flow, int_fast32_t capacity, int_fast32_t cost);
 
-    int_fast32_t get_max_flow(int_fast32_t start_node, int_fast32_t end_node);
-
+    void get_ans(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t n);
 
 private:
     int_fast32_t n_nodes;
@@ -100,7 +99,6 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node) {
     if (cost[end_node] == INF) { // условие выхода из функции*/
         return false;
     }
-
     // протолкнуть новый поток и прибавить его стоимость
 
     int_fast32_t max_flow = INF;
@@ -131,10 +129,28 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node) {
 }
 
 
-int_fast32_t Graph::get_max_flow(int_fast32_t start_node, int_fast32_t end_node) {
+void Graph::get_ans(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t n) {
     cum_cost = 0;
-    while (bellman_ford(start_node, end_node)) {}
-    return cum_cost;
+
+    for (int i = 0; i < n_nodes; i++) {
+        // TODO: Релаксация должна начинаться не с начального ребра ???
+      bellman_ford(start_node, end_node);
+    }
+    if (cum_cost > 0){
+        std::cout << "SUBOPTIMAL\n";
+        for (int_fast32_t i = 1; i < n + 1; i++){
+            for (auto & edge : nodes[i]){
+                if (edge.capacity > 0){
+                    std::cout << edge.flow << " ";
+                }
+            }
+            std::cout << "\n";
+        }
+
+    } else{
+        std::cout <<  "OPTIMAL\n";
+    }
+
 }
 
 
@@ -178,18 +194,43 @@ int main() {
         graph.add_edge(n + i + 1, n + m + 1, 0, std::get<2>(shelters[i]), 0);
     }
 
-    int_fast32_t res = graph.get_max_flow(0, n + m + 1);
-    // вернуть результат !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-
-
-
-
-
-
-
+    graph.get_ans(0, n + m + 1, n);
 
     return 0;
 }
+
+/*
+3 4
+-3 3 5
+-2 -2 6
+2 2 5
+-1 1 3
+1 1 4
+-2 -2 7
+0 -1 3
+3 1 1 0
+0 0 6 0
+0 3 0 2
+
+SUBOPTIMAL
+3 0 1 1
+0 0 6 0
+0 4 0 1
+
+
+
+
+3 4
+-3 3 5
+-2 -2 6
+2 2 5
+-1 1 3
+1 1 4
+-2 -2 7
+0 -1 3
+3 0 1 1
+0 0 6 0
+0 4 0 1
+
+OPTIMAL
+ */
