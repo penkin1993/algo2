@@ -24,7 +24,7 @@ public:
 
     Graph &operator=(Graph &&) = delete;
 
-    void add_edge(int_fast32_t from, int_fast32_t to, int_fast32_t capacity, int_fast32_t cost);
+    void add_edge(int_fast32_t from, int_fast32_t to, int_fast32_t flow, int_fast32_t capacity, int_fast32_t cost);
 
     int_fast32_t get_max_flow(int_fast32_t start_node, int_fast32_t end_node);
 
@@ -49,9 +49,9 @@ Graph::Graph(int_fast32_t n_nodes_) {
     }
 }
 
-void Graph::add_edge(int_fast32_t from, int_fast32_t to, int_fast32_t capacity, int_fast32_t cost_) {
-    Edge e1{from, to, 0, capacity, cost_}; // прямое ребро
-    Edge e2{to, from, 0, 0, -cost_}; // обратное ребро
+void Graph::add_edge(int_fast32_t from, int_fast32_t to, int_fast32_t flow, int_fast32_t capacity, int_fast32_t cost_) {
+    Edge e1{from, to, flow, capacity, cost_}; // прямое ребро
+    Edge e2{to, from, -flow, 0, -cost_}; // обратное ребро
 
     nodes[from].push_back(e1);
     nodes[to].push_back(e2);
@@ -159,26 +159,26 @@ int main() {
     }
 
     // предопределить исток
-    for (int_fast32_t i = 0; i < n; i++){
-        graph.add_edge(0, i + 1, std::get<2>(buildings[i]), 0);
+    for (int_fast32_t i = 0; i < n; i++) {
+        graph.add_edge(0, i + 1, 0, std::get<2>(buildings[i]), 0);
     }
 
-    int_fast32_t val;
+    int_fast32_t flow;
     for (int_fast32_t i = 0; i < n; i++) {
         for (int_fast32_t j = 0; j < m; j++) {
-            std::cin >> val;
-            // задать  правильно поток !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            graph.add_edge(i + 1, n + 1 + j, std::get<2>(buildings[i]),
-                    1 + std::abs(std::get<0>(buildings[i]) - std::get<0>(shelters[j])) +
-                    std::abs(std::get<1>(buildings[i]) - std::get<1>(shelters[j])));
+            std::cin >> flow;
+
+            graph.add_edge(i + 1, j + n + 1, flow, std::get<2>(buildings[i]),
+                           1 + std::abs(std::get<0>(buildings[i]) - std::get<0>(shelters[j])) +
+                           std::abs(std::get<1>(buildings[i]) - std::get<1>(shelters[j])));
         }
     }
 
-    for (int_fast32_t i = 0; i < m; i++){
-        graph.add_edge(n + i + 1, n + m + 1, std::get<2>(shelters[i]), 0);
+    for (int_fast32_t i = 0; i < m; i++) {
+        graph.add_edge(n + i + 1, n + m + 1, 0, std::get<2>(shelters[i]), 0);
     }
 
-    int_fast32_t res = graph.get_max_flow(0, n  + m + 1);
+    int_fast32_t res = graph.get_max_flow(0, n + m + 1);
     // вернуть результат !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
