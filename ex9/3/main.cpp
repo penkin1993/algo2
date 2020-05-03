@@ -122,7 +122,9 @@ void Graph::get_ans(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t
     int_fast32_t cum_cost_1 = count_cost(n);
 
     for (int i = 0; i < 4; i++) { // TODO
-        bellman_ford(start_node, end_node, n);
+        if (bellman_ford(start_node, end_node, n)){
+            break;
+        }
     }
     // посчитать стоимость после
     int_fast32_t cum_cost_2 = count_cost(n);
@@ -241,7 +243,7 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node, int_fas
         }
     }
 
-    return true;
+    return max_flow != 0;
 
 }
 
@@ -309,8 +311,6 @@ SUBOPTIMAL
 3 0 1 1
 0 0 6 0
 0 4 0 1
-
-
 
 
 3 4
