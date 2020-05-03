@@ -64,11 +64,11 @@ void Graph::add_edge(int_fast32_t from, int_fast32_t to, int_fast32_t flow, int_
 }
 
 
-int_fast32_t Graph::count_cost(int_fast32_t n){
+int_fast32_t Graph::count_cost(int_fast32_t n) {
     int_fast32_t cum_cost = 0;
     for (int_fast32_t i = 1; i < n + 1; i++) {
-        for (auto & node : nodes[i]){
-            if (node.flow > 0){
+        for (auto &node : nodes[i]) {
+            if (node.flow > 0) {
                 cum_cost += node.flow * node.cost;
             }
         }
@@ -89,8 +89,8 @@ void Graph::get_ans(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t
     for (int_fast32_t i = n + 1; i < n_nodes - 1; i++) {
         int_fast32_t max_cost = -INF;
         std::pair<int_fast32_t, int_fast32_t> min_node;
-        for (auto & node : nodes[i]){
-            if ((node.flow < 0) && (-node.cost > max_cost)){
+        for (auto &node : nodes[i]) {
+            if ((node.flow < 0) && (-node.cost > max_cost)) {
                 max_cost = -node.cost;
                 min_node.first = node.to;
                 min_node.second = node.rev_node;
@@ -104,8 +104,8 @@ void Graph::get_ans(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t
     int_fast32_t max_cost = -INF;
     std::pair<int_fast32_t, int_fast32_t> min_node;
 
-    for (auto & node : nodes[n_nodes - 1]){
-        if ((node.flow < 0) && (node.cost > max_cost)){
+    for (auto &node : nodes[n_nodes - 1]) {
+        if ((node.flow < 0) && (node.cost > max_cost)) {
             max_cost = -node.cost;
             min_node.first = node.to;
             min_node.second = node.rev_node;
@@ -121,13 +121,13 @@ void Graph::get_ans(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t
     // посчитать стоимость до
     int_fast32_t cum_cost_1 = count_cost(n);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) { // TODO
         bellman_ford(start_node, end_node, n);
     }
     // посчитать стоимость после
     int_fast32_t cum_cost_2 = count_cost(n);
 
-    std::cout << cum_cost_1 << " " << cum_cost_2 << "\n";
+    //std::cout << cum_cost_1 << " " << cum_cost_2 << "\n";
 
     if (cum_cost_1 != cum_cost_2) {
         std::cout << "SUBOPTIMAL\n";
@@ -167,11 +167,9 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node, int_fas
     }
 
     // протолкнуть новый поток и прибавить его стоимость
-
-
-
-
-
+    //if (change_node == end_node){ // TODO ???
+    //    return true;
+    //}
 
 
 
@@ -181,12 +179,14 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node, int_fas
     std::vector<bool> is_repeat_1(n_nodes, false);
 
     while (true) { // найти за линию максимум его пропускной способности
+        //std::cout << "next_node" << next_node << "\n";
+
         int_fast32_t ind_node = min_path_nodes[next_node].first;
         int_fast32_t ind_edge = min_path_nodes[next_node].second;
 
         int_fast32_t flow = nodes[ind_node][ind_edge].capacity - nodes[ind_node][ind_edge].flow;
         max_flow = std::min(flow, max_flow);
-        if (is_repeat_1[next_node]){
+        if (is_repeat_1[next_node]) {
             break;
         }
         is_repeat_1[next_node] = true;
@@ -194,35 +194,55 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node, int_fas
     }
 
 
+    //std::cout << "\n";
+    //std::cout << "max_flow " << max_flow << "\n";
+
+    if (max_flow > 0) {
+        max_flow = 1;
+    }
+
 
     next_node = change_node;
-
     std::vector<bool> is_repeat_2(n_nodes, false);
     while (true) { // протолкнуть поток
+        //std::cout << "next_node " << next_node << "\n";
         int_fast32_t ind_node = min_path_nodes[next_node].first;
         int_fast32_t ind_edge = min_path_nodes[next_node].second;
 
         // увеличить поток !!!!
+
         nodes[ind_node][ind_edge].flow += max_flow;
         nodes[next_node][nodes[ind_node][ind_edge].rev_node].flow -= max_flow;
-        if (is_repeat_2[next_node]){
+
+
+        if (is_repeat_2[next_node]) {
             break;
         }
         is_repeat_2[next_node] = true;
         next_node = ind_node;
     }
 
-
-
-
-
-
-
-
-
-
+    for (int_fast32_t i = 1; i < n + 1; i++) {
+        int_fast32_t max_capacity = nodes[0][i -1].capacity;
+        int_fast32_t max_cost = -INF;
+        int_fast32_t cum_flow = 0;
+        int_fast32_t max_cost_ind = -1;
+        for (auto &node: nodes[i]) {
+            if (node.flow > 0){
+                cum_flow += node.flow;
+                if (node.cost > max_cost){
+                    max_cost = node.cost;
+                    max_cost_ind = node.index;
+                }
+            }
+        }
+        if (cum_flow > max_capacity){
+            nodes[i][max_cost_ind].flow --;
+        }
+    }
 
     return true;
+
 }
 
 int main() {
@@ -263,7 +283,7 @@ int main() {
 
     for (int_fast32_t i = 0; i < m; i++) {
         graph.add_edge(n + i + 1, n + m + 1, std::get<2>(shelters[i]),
-                std::get<2>(shelters[i]), 0);
+                       std::get<2>(shelters[i]), 0);
     }
 
     graph.get_ans(0, n + m + 1, n);
