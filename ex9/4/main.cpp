@@ -27,7 +27,7 @@ public:
 
     void add_edge(int_fast32_t from, int_fast32_t to, int_fast32_t capacity, int_fast32_t cost);
 
-    int_fast32_t get_max_flow(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t k,
+    int_fast32_t get_max_flow(int_fast32_t start_node, int_fast32_t end_node, int_fast32_t k, int_fast32_t n,
                               std::vector<std::pair<int_fast32_t, bool>> job_index);
 
 
@@ -98,7 +98,7 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node) {
             }
         }
     }
-    if (cost[end_node] == INF) { // условие выхода из функции*/
+    if (cost[end_node] == INF) { // условие выхода из функции
         return false;
     }
 
@@ -133,14 +133,14 @@ bool Graph::bellman_ford(int_fast32_t start_node, int_fast32_t end_node) {
 
 
 int_fast32_t Graph::get_max_flow(int_fast32_t start_node, int_fast32_t end_node,
-                                 int_fast32_t k, std::vector<std::pair<int_fast32_t, bool>> job_index) {
+                                 int_fast32_t k, int_fast32_t n, std::vector<std::pair<int_fast32_t, bool>> job_index) {
     cum_cost = 0;
     while (bellman_ford(start_node, end_node)) {}
 
-    for (int i = k; i < n_nodes - 1; i++) {
+    for (int i = k + 1; i < k + n + 1; i++) {
         for (auto &node : nodes[i]) {
-            if (node.flow == 1) {
-                job_index[i - k].second = true;
+            if (node.flow != 0) {
+                job_index[i - k - 1].second = true;
             }
         }
     }
@@ -171,33 +171,28 @@ int main() {
 
     sort(job.begin(), job.end());
 
-    std::vector<std::pair<int_fast32_t, bool>> job_index; // индекс работ !!!
+    std::vector<std::pair<int_fast32_t, bool>> job_index; // индекс работ
     for (int i = 0; i < n; i++) {
         job_index.emplace_back(std::get<3>(job[i]), false);
     }
 
-    //for (auto &i : job) {
-    //    std::cout << std::get<0>(i) << " " << std::get<1>(i) << " " << std::get<2>(i) << "\n";
-    //}
-
-
-    // Инит истока + путь в фейковые работники
+    // Путь из стока к работникам
     for (int_fast32_t i = 1; i < k + 1; i++) {
         graph.add_edge(0, i, 1, 0);
     }
 
-    // соединение кажой фейковой работы с работником
+    // соединение каждого работника с фейковой работой
     for (int_fast32_t i = 1; i < k + 1; i++) { // цикл по работникам
         for (int_fast32_t j = 0; j < n; j++) { // цикл по фейковым работам
             graph.add_edge(i, k + 1 + j, 1, 0);
         }
     }
 
-    for (int_fast32_t j = 0; j < n; j++) { // соединение кажой работы и со стоком
-        graph.add_edge(n + k + 1 + j, k + 2 * n + 1, 1, 0);
+    for (int_fast32_t i = 0; i < n; i++) { // соединение работы со стоком
+        graph.add_edge(n + k + 1 + i, k + 2 * n + 1, 1, 0);
     }
 
-    // осединение между фейковым работами и работами
+    // соединение между фейковым работами и работами
     for (int_fast32_t i = 0; i < n; i++) {
         graph.add_edge(k + 1 + i, k + n + 1 + i, 1, std::get<2>(job[i]));
     }
@@ -205,38 +200,15 @@ int main() {
     // переходы между работами
     for (int_fast32_t i = 0; i < n; i++) {
         for (int_fast32_t j = i + 1; j < n; j++) {
-            //std::cout << "first " << std::get<0>(job[i]) << " " << std::get<1>(job[i]) << " " << std::get<2>(job[i])
-            //          << "\n";
             if (std::get<1>(job[i]) <= std::get<0>(job[j])) { // время заверешнеия предыдущей не меньше начала следующей
-                graph.add_edge(k + n + 1 + i,  k + n + 1 + j, 1, std::get<2>(job[j]));
-                //std::cout << "others " << std::get<0>(job[j]) << " " << std::get<1>(job[j]) << " "
-                //          << std::get<2>(job[j]) << "\n\n";
+                graph.add_edge(k + n + 1 + i, k + 1 + j, 1, 0);
             }
         }
     }
 
-    int_fast32_t res = graph.get_max_flow(0, k + 2 * n + 1,  k + n + 1, job_index);
-    // std::cout << res << "\n";
 
-
+    graph.get_max_flow(0, k + 2 * n + 1, k, n, job_index);
 
     return 0;
 }
-
-/*
-3 1
-2 7 5
-1 3 3
-4 1 3
-
-5 2
-1 5 4
-1 4 5
-1 3 2
-4 1 2
-5 6 1
-
- */
-
-
 
