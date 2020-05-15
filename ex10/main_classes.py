@@ -1,77 +1,41 @@
 import operator
 
-from pyparsing import Literal, CaselessLiteral, Word, Group, Optional, \
-    ZeroOrMore, Forward, nums, alphas, Regex, ParseException
-
-exprStack = []
-
-
-def push_first(strg, loc, toks):
-    exprStack.append(toks[0])
-
-
-def push_uminus(strg, loc, toks):
-    for t in toks:
-        if t == '-':
-            exprStack.append('unary -')
-            # ~ exprStack.append( '-1' )
-            # ~ exprStack.append( '*' )
-        else:
-            break
-
-
-bnf_ = None
+from pyparsing import Literal, Word, Group, ZeroOrMore, Forward, nums, alphas, Regex, ParseException
 
 
 def bnf():
-    """
-    expop   :: '^'
-    multop  :: '*' | '/'
-    addop   :: '+' | '-'
-    integer :: ['+' | '-'] '0'..'9'+
-    atom    :: PI | E | real | fn '(' expr ')' | '(' expr ')'
-    factor  :: atom [ expop factor ]*
-    term    :: factor [ multop factor ]*
-    expr    :: term [ addop term ]*
-    """
-    global bnf_
-    if not bnf_:
-        point = Literal(".")
-        e = CaselessLiteral("E")
-        # ~ fnumber = Combine( Word( "+-"+nums, nums ) +
-        # ~ Optional( point + Optional( Word( nums ) ) ) +
-        # ~ Optional( e + Word( "+-"+nums, nums ) ) )
-        fnumber = Regex(r"[+-]?\d+(:?\.\d*)?(:?[eE][+-]?\d+)?")
-        ident = Word(alphas, alphas + nums + "_$")
+    expr_stack = []
 
-        plus = Literal("+")
-        minus = Literal("-")
-        mult = Literal("*")
-        div = Literal("/")
-        lpar = Literal("(").suppress()
-        rpar = Literal(")").suppress()
-        addop = plus | minus
-        multop = mult | div
-        expop = Literal("^")
-        pi = CaselessLiteral("PI")
+    def push_uminus(strg, loc, toks):
+        for t in toks:
+            if t == '-':
+                expr_stack.append('unary -')
+            else:
+                break
 
-        expr = Forward()
-        atom = ((0, None) * minus + (pi | e | fnumber | ident + lpar + expr + rpar | ident).setParseAction(push_first) |
-                Group(lpar + expr + rpar)).setParseAction(push_uminus)
+    fnumber = Regex(r"[+-]?\d+(:?\.\d*)?(:?[eE][+-]?\d+)?")
+    ident = Word(alphas, alphas + nums + "_$")  # можно проще ?
 
-        # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left exponents, instead of left-to-righ
-        # that is, 2^3^2 = 2^(3^2), not (2^3)^2.
-        factor = Forward()
-        factor << atom + ZeroOrMore((expop + factor).setParseAction(push_first))
+    plus = Literal("+")
+    minus = Literal("-")
 
-        term = factor + ZeroOrMore((multop + factor).setParseAction(push_first))
-        expr << term + ZeroOrMore((addop + term).setParseAction(push_first))
-        bnf_ = expr
-    return bnf_
+    mult = Literal("*")
+    div = Literal("/")
+
+    lpar = Literal("(")
+    rpar = Literal(")")
+
+    expr = Forward()
+    atom = ((0, None) * minus + (ident | fnumber | ident + lpar + expr + rpar).
+            setParseAction(lambda x: expr_stack.append(x[0])) |
+            Group(lpar + expr + rpar)).setParseAction(push_uminus)  # шаг парсинга в рекурсии
+
+    term = atom + ZeroOrMore(((mult | div) + atom).setParseAction(lambda x: expr_stack.append(x[0])))
+    expr << term + ZeroOrMore(((plus | minus) + term).setParseAction(lambda x: expr_stack.append(x[0])))
+
+    return expr, expr_stack
 
 
-# map operator symbols to corresponding arithmetic operations
-epsilon = 1e-12
 opn = {"+": operator.add,
        "-": operator.sub,
        "*": operator.mul,
@@ -79,7 +43,7 @@ opn = {"+": operator.add,
        }
 
 
-def evaluate_stack(s):
+def evaluate_stack(s):  # оформить статическим методом
     op = s.pop()
     if op == 'unary -':
         return -evaluate_stack(s)
@@ -93,32 +57,33 @@ def evaluate_stack(s):
         return float(op)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # поменять на классические юнитесты !!!
 
     def test(s, expVal):
-        global exprStack
-        exprStack = []
         try:
-            results = bnf().parseString(s, parseAll=True)
-            val = evaluate_stack(exprStack[:])
+            results, expr_stack = bnf()
+            results = results.parseString(s, parseAll=True)
+            # print("exprStack", exprStack)
+            # print("results", results)
+            val = evaluate_stack(expr_stack[:])
         except ParseException as e:
             print(s, "failed parse:", str(e))
         except Exception as e:
             print(s, "failed eval:", str(e))
         else:
             if val == expVal:
-                print(s, "=", val, results, "=>", exprStack)
+                print(s, "=", val, results, "=>", expr_stack)
             else:
-                print(s + "!!!", val, "!=", expVal, results, "=>", exprStack)
+                print(s + "!!!", val, "!=", expVal, results, "=>", expr_stack)
 
 
     test("9", 9)
     test("-9", -9)
     test("--9", 9)
     test("9 + 3 + 6", 9 + 3 + 6)
-    test("9 + 3 / 11", 9 + 3.0 / 11)
-    test("(9 + 3)", (9 + 3))
+    test("(9 + 3) / 11", (9 + 3.0) / 11)
     test("(9+3) / 11", (9 + 3.0) / 11)
+    test("(9 + 3)", (9 + 3))
     test("9 - 12 - 6", 9 - 12 - 6)
     test("9 - (12 - 6)", 9 - (12 - 6))
     test("2*3.14159", 2 * 3.14159)
