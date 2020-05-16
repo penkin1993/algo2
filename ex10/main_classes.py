@@ -1,110 +1,74 @@
 import operator
 
-from pyparsing import Literal, Group, ZeroOrMore, Forward, nums, ParseException, Optional, Suppress, Word, Combine
-
-
-def bnf():
-    expr_stack = []
-
-    def push_uminus(strg, loc, toks):
-        for t in toks:
-            if t == '-':
-                expr_stack.append('unary -')
-            else:
-                break
-
-    p_m = Suppress("+") | Literal("-")
-    int_num = Word(nums)
-    float_num = Combine(Optional(p_m) + int_num + Optional('.' + int_num) + Optional('e' + Optional(p_m) + int_num))
-
-    add = Literal("+")
-    sub = Literal("-")
-
-    mul = Literal("*")
-    div = Literal("/")
-
-    lpar = Literal("(")
-    rpar = Literal(")")
-
-    expr = Forward()
-
-    atom = (ZeroOrMore(p_m) + (float_num.setParseAction(lambda x: expr_stack.append(x[0])) | (lpar + expr + rpar)))\
-        .setParseAction(push_uminus)
-
-    term = atom + ZeroOrMore(((mul | div) + atom).setParseAction(lambda x: expr_stack.append(x[0])))
-    expr << term + ZeroOrMore(((add | sub) + term).setParseAction(lambda x: expr_stack.append(x[0])))
-
-    return expr, expr_stack
-
-
-opn = {"+": operator.add,
-       "-": operator.sub,
-       "*": operator.mul,
-       "/": operator.truediv
-       }
-
-
-def evaluate_stack(s):  # оформить статическим методом
-    op = s.pop()
-    if op == 'unary -':
-        return -evaluate_stack(s)
-    if op in "+-*/":
-        op2 = evaluate_stack(s)
-        op1 = evaluate_stack(s)
-        return opn[op](op1, op2)
-    elif op[0].isalpha():
-        raise Exception("invalid identifier '%s'" % op)
-    else:
-        return float(op)
-
-
-if __name__ == "__main__":  # поменять на классические юнитесты !!!
-
-    def test(s, exp_val):
-        try:
-            results, expr_stack = bnf()
-            # print("expr_stack", expr_stack)
-            # print("results", results)
-            # print(expr_stack == [])
-            # expr_stack = []
-            results = results.parseString(s, parseAll=True)
-            val = evaluate_stack(expr_stack[:])
-        except ParseException as e:
-            print(s, "failed parse:", str(e))
-        except Exception as e:
-            print(s, "failed eval:", str(e))
-        else:
-            if val == exp_val:
-                print(s, "=", val, results, "=>", expr_stack)
-            else:
-                print(s + " BLABLABLABLABLABLABLABLABLABLABLABLABLABLA ", val, "!=", exp_val, results, "=>", expr_stack)
-
-
-    test("++9", 9)
-    test("+-9", -9)
-    test("----9", 9)
-    test("9 + 3 + 6", 9 + 3 + 6)
-    test("(9 + 3) / 11", (9 + 3.0) / 11)
-    test("(9+3) / 11", (9 + 3.0) / 11)
-    test("((9 + 3))", (9 + 3))
-    test("-(9 + 3)", -(9 + 3))
-    test("9 - 12 - 6", 9 - 12 - 6)
-    test("9 - (12 - 6)", 9 - (12 - 6))
-    test("2*3.14159", 2 * 3.14159)
-    test("9 * (12 - 6)", 9 * (12 - 6))
-    test("-((1 * 2) + (12/6))", -4)
-    test("-((1 * 2) - (12/6))", 0)
-    test("-((1 * 2) - (12/6))", 0)
-    test("-((1 + 2) * 12/6)", -6)
-
-
-from pyparsing import Word, Suppress, alphas, nums
+from pyparsing import Literal, ZeroOrMore, Forward, Optional, Suppress, Word, Combine, nums, alphas
 
 
 class EqParse:
     def __init__(self):
-        self.__var_dict = dict()
-        self.__expr, self.__expr_stack = self.bnf()
+        self.__var_dict = {"+": operator.add,
+                           "-": operator.sub,
+                           "*": operator.mul,
+                           "/": operator.truediv}
+        self.__expr_list = None
+
+    def __parse_minus(self, x):
+        """
+        Parameters
+        ----------
+        x
+
+        Returns
+        -------
+
+        """
+        i = 0
+        while (i != len(x)) & (x[i] == "-"):
+            self.__expr_list.append("minus")
+            i += 1
+
+    def bnf(self):
+        """
+        Returns
+        -------
+
+        """
+        add = Literal("+")
+        sub = Literal("-")
+
+        mul = Literal("*")
+        div = Literal("/")
+
+        lpar = Literal("(")
+        rpar = Literal(")")
+
+        p_m = Suppress("+") | Literal("-")
+        int_num = Word(nums)
+
+        float_num = Combine(Optional(p_m) + int_num + Optional('.' + int_num) + Optional('e' + Optional(p_m) + int_num))
+
+        expr = Forward()
+        parse_expr = (ZeroOrMore(p_m) + (float_num.setParseAction(lambda x: self.__expr_list.append(x[0])) |
+                                         (lpar + expr + rpar))).setParseAction(self.__parse_minus)
+
+        sum_expr = parse_expr + ZeroOrMore(((mul | div) + parse_expr)
+                                           .setParseAction(lambda x: self.__expr_list.append(x[0])))
+
+        expr << sum_expr + ZeroOrMore(((add | sub) + sum_expr)
+                                      .setParseAction(lambda x: self.__expr_list.append(x[0])))
+        return expr
+
+    def evaluate_stack(self, res_list):  # оформить статическим методом
+        op = res_list.pop()
+        if op == "minus":
+            return -self.evaluate_stack(res_list)
+        if op in "+-*/":
+            op2 = self.evaluate_stack(res_list)
+            op1 = self.evaluate_stack(res_list)
+            return self.__var_dict[op](op1, op2)
+        elif op[0].isalpha():
+            raise Exception("invalid identifier '%s'" % op)
+        else:
+            return float(op)
 
     @staticmethod
     def __eq_split(input_str: str):
@@ -118,11 +82,11 @@ class EqParse:
         -------
         output is variable name and expression
         """
-        greet = Word(alphas) + Suppress("=") + Word(nums + alphas + "+-*/()")
+        greet = Word(alphas) + Suppress("=") + Word(nums + alphas + " +-*/().e")
         greeting = greet.parseString(input_str)
         return greeting[0], greeting[1]
 
-    def __call__(self, input_str: str):
+    def __call__(self, input_str: str, correct_val):
         """
         Parameters
         ----------
@@ -134,6 +98,40 @@ class EqParse:
         """
         var, expr = self.__eq_split(input_str)
         self.__var_dict[var] = None
+        self.__expr_list = []
+
+        result = self.bnf()
+        result.parseString(expr, parseAll=True)
+        val = self.evaluate_stack(self.__expr_list.copy())
+        print(expr, "=", val, correct_val == val)
+
+
+if __name__ == "__main__":  # поменять на классические юнитесты !!!
+
+    eq_parse = EqParse()
+
+    eq_parse("a = ++9", 9)
+    eq_parse("a = +-9", -9)
+    eq_parse("a = ----9", 9)
+    eq_parse("a = 9 + 3 + 6", 9 + 3 + 6)
+    eq_parse("a = (9 + 3) / 11", (9 + 3.0) / 11)
+    eq_parse("a = (9+3) / 11", (9 + 3.0) / 11)
+    eq_parse("a = ((9 + 3))", (9 + 3))
+    eq_parse("a = -(9 + 3)", -(9 + 3))
+    eq_parse("a = 9 - 12 - 6", 9 - 12 - 6)
+    eq_parse("a = 9 - (12 - 6)", 9 - (12 - 6))
+    eq_parse("a = 2*3.14159", 2 * 3.14159)
+    eq_parse("a = 9 * (12 - 6)", 9 * (12 - 6))
+    eq_parse("a = -((1 * 2) + (12/6))", -4)
+    eq_parse("a = -((1 * 2) - (12/6))", 0)
+    eq_parse("a = -((1 * 2) - (12/6))", 0)
+    eq_parse("a = -((1 + 2) * 12/6)", -6)
+
+
+
+
+
+
 
 
 
