@@ -1,6 +1,6 @@
 import operator
 
-from pyparsing import Literal, Group, ZeroOrMore, Forward, nums, ParseException, Optional, Suppress, Word
+from pyparsing import Literal, Group, ZeroOrMore, Forward, nums, ParseException, Optional, Suppress, Word, Combine
 
 
 def bnf():
@@ -15,7 +15,7 @@ def bnf():
 
     p_m = Suppress("+") | Literal("-")
     int_num = Word(nums)
-    float_num = Optional(p_m) + int_num + Optional('.' + int_num) + Optional('e' + Optional(p_m) + int_num)
+    float_num = Combine(Optional(p_m) + int_num + Optional('.' + int_num) + Optional('e' + Optional(p_m) + int_num))
 
     add = Literal("+")
     sub = Literal("-")
@@ -28,7 +28,7 @@ def bnf():
 
     expr = Forward()
 
-    atom = (ZeroOrMore(p_m) + ((float_num | nums + lpar + expr + rpar).setParseAction(lambda x: expr_stack.append(x[0])) | Group(lpar + expr + rpar)))\
+    atom = (ZeroOrMore(p_m) + (float_num.setParseAction(lambda x: expr_stack.append(x[0])) | (lpar + expr + rpar)))\
         .setParseAction(push_uminus)
 
     term = atom + ZeroOrMore(((mul | div) + atom).setParseAction(lambda x: expr_stack.append(x[0])))
@@ -77,7 +77,7 @@ if __name__ == "__main__":  # поменять на классические ю�
             if val == exp_val:
                 print(s, "=", val, results, "=>", expr_stack)
             else:
-                print(s + "!!!", val, "!=", exp_val, results, "=>", expr_stack)
+                print(s + " BLABLABLABLABLABLABLABLABLABLABLABLABLABLA ", val, "!=", exp_val, results, "=>", expr_stack)
 
 
     test("++9", 9)
@@ -92,6 +92,10 @@ if __name__ == "__main__":  # поменять на классические ю�
     test("9 - (12 - 6)", 9 - (12 - 6))
     test("2*3.14159", 2 * 3.14159)
     test("9 * (12 - 6)", 9 * (12 - 6))
+    test("-((1 * 2) + (12/6))", -4)
+    test("-((1 * 2) - (12/6))", 0)
+    test("-((1 * 2) - (12/6))", 0)
+    test("-((1 + 2) * 12/6)", -6)
 
 
 from pyparsing import Word, Suppress, alphas, nums
