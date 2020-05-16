@@ -82,10 +82,10 @@ class EqParse:
                                             float_num.setParseAction(lambda x: self.__expr_list.append(x[0])) |
                                             (lbr + parser + rbr))).setParseAction(self.__parse_minus)
 
-        sum_expr = parse_expr + ps.ZeroOrMore(((mul | div) + parse_expr)
+        mul_expr = parse_expr + ps.ZeroOrMore(((mul | div) + parse_expr)
                                               .setParseAction(lambda x: self.__expr_list.append(x[0])))
 
-        parser << sum_expr + ps.ZeroOrMore(((add | sub) + sum_expr)
+        parser << mul_expr + ps.ZeroOrMore(((add | sub) + mul_expr)
                                            .setParseAction(lambda x: self.__expr_list.append(x[0])))
         return parser
 
