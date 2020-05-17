@@ -1,5 +1,5 @@
 """
-Module with class for expressions parsing
+Module with class for mathematics expressions parsing
 """
 import sys
 import typing
@@ -78,12 +78,12 @@ class EqParse:
 
         str_num = ps.Combine(ps.Optional(p_m) + ps.Word(ps.alphas))
         parser = ps.Forward()
-        parse_expr = (ps.ZeroOrMore(p_m) + (str_num.setParseAction(lambda x: self.__expr_list.append(x[0])) |
-                                            float_num.setParseAction(lambda x: self.__expr_list.append(x[0])) |
-                                            (lbr + parser + rbr))).setParseAction(self.__parse_minus)
+        term = (ps.ZeroOrMore(p_m) + (str_num.setParseAction(lambda x: self.__expr_list.append(x[0])) |
+                                      float_num.setParseAction(lambda x: self.__expr_list.append(x[0])) |
+                                      (lbr + parser + rbr))).setParseAction(self.__parse_minus)
 
-        mul_expr = parse_expr + ps.ZeroOrMore(((mul | div) + parse_expr)
-                                              .setParseAction(lambda x: self.__expr_list.append(x[0])))
+        mul_expr = term + ps.ZeroOrMore(((mul | div) + term)
+                                        .setParseAction(lambda x: self.__expr_list.append(x[0])))
 
         parser << mul_expr + ps.ZeroOrMore(((add | sub) + mul_expr)
                                            .setParseAction(lambda x: self.__expr_list.append(x[0])))
