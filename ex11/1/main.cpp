@@ -1,7 +1,40 @@
+#include <algorithm>
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <tuple>
+
+inline int_fast32_t positive_mod(int_fast32_t i, int_fast32_t n) {
+    return (i % n + n) % n;
+}
+
+void radix_sort(std::vector<std::tuple<char, int_fast32_t, int_fast32_t>> * char_array,
+                std::vector<int_fast32_t> * pos, int_fast32_t k){
+
+    // получить модуль сдвига
+    int_fast32_t mod =  -(1 << k);
+    //std::cout << mod;
+
+    std::vector<int_fast32_t> first_c;
+    // сформировать первый разряд
+    for (int_fast32_t i = 0; i < char_array->size(); i++){
+        int_fast32_t prev_ind = positive_mod(std::get<1>(char_array->at(i)) + mod, char_array->size());
+        first_c.push_back(std::get<2>(char_array->at(pos->at(prev_ind))));
+    }
+
+    // for (int_fast32_t i = 0; i < first_c.size(); i++){
+    //   std::cout << first_c[i] << " " << std::get<2>(char_array->at(i)) << "\n";
+    //}
+
+    //отсортировать его
+
+
+    // сформировать новый c
+
+    // + сформировать новый pos
+    
+
+    // выход из него если все классы различыне
+}
 
 void get_sort_suffix(std::string input_s) {
     std::vector<std::tuple<char, int_fast32_t, int_fast32_t>> char_array;
@@ -30,18 +63,8 @@ void get_sort_suffix(std::string input_s) {
         std::get<2>(char_array[i]) = counter;
     }
 
-
-    // + цифровая сортировка !!!!
-
-
-
-
-
-
-
-
-
-
+    // цифровая сортировка
+    radix_sort(& char_array, & pos, 0);
 
 
     for (int_fast32_t i = 0; i < char_array.size(); i++) {
@@ -49,8 +72,8 @@ void get_sort_suffix(std::string input_s) {
                   << std::get<2>(char_array[i]) << " "<< pos[i] << "\n";
     }
 
-
 }
+
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
