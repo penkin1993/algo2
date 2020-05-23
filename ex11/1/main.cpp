@@ -25,12 +25,12 @@ inline int_fast32_t positive_mod(int_fast32_t i, int_fast32_t n) {
 }
 
 bool radix_sort(std::vector<Item> *items, std::vector<Item> *new_items, std::vector<int_fast32_t> *pos,
-                int_fast32_t k, int_fast32_t counter) {
+                int_fast32_t k, int_fast32_t * counter) {
 
     // получить модуль сдвига
     int_fast32_t mod = -(1 << k);
 
-    std::vector<int_fast32_t> array_counter(counter + 1, 0);
+    std::vector<int_fast32_t> array_counter(*counter + 1, 0);
     std::vector<int_fast32_t> first_c;
 
     // сформировать первый разряд
@@ -88,13 +88,13 @@ bool radix_sort(std::vector<Item> *items, std::vector<Item> *new_items, std::vec
     // сформировать новый pos
     for (int_fast32_t i = 0; i < new_items->size(); i++) {
         pos->at(new_items->at(i).p) = i;
+
+        items->at(i).symbol = new_items->at(i).symbol;
+        items->at(i).p = new_items->at(i).p;
+        items->at(i).c = new_items->at(i).c;
     }
-    return new_counter == items->size() - 1;
-    
-    //std::cout << "\n";
-    //for (int_fast32_t i = 0; i < first_c.size(); i++) {
-    //    std::cout  << new_items->at(i).c << "|" << new_items->at(i).p << "|" << new_items->at(i).symbol << "\n";
-    //}
+    *counter = new_counter;
+    return new_counter != items->size() - 1;
 }
 
 void get_sort_suffix(std::string input_s) {
@@ -124,9 +124,15 @@ void get_sort_suffix(std::string input_s) {
         }
         items[i].c = counter;
     }
-
     // цифровая сортировка
-    radix_sort(&items, &new_items, &pos, 0, counter);
+    int32_t k = 0;
+    while (radix_sort(&items, &new_items, &pos, k, &counter)){
+        k++;
+    }
+
+    for (auto & item : items) {
+       std::cout  << item.c << "|" << item.p << "|" << item.symbol << "\n";
+    }
 }
 
 
