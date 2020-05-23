@@ -1,7 +1,7 @@
 #include <algorithm>
+#include <string>
 #include <iostream>
 #include <vector>
-#include <tuple>
 
 struct Item {
     char symbol;
@@ -72,7 +72,6 @@ bool radix_sort(std::vector<Item> *items, std::vector<Item> *new_items, std::vec
         new_first_c[ind] = first_c[i];
     }
 
-
     int_fast32_t new_counter = 0;
     int_fast32_t prev = new_items->at(0).c;
     new_items->at(0).c = 0;
@@ -97,7 +96,7 @@ bool radix_sort(std::vector<Item> *items, std::vector<Item> *new_items, std::vec
     return new_counter != items->size() - 1;
 }
 
-void calc_lcp(std::string s, std::vector<Item> *items, std::vector<int_fast32_t> *pos) {
+void calc_lcp(std::string s, std::vector<Item> *items, std::vector<int_fast32_t> *pos, int_fast32_t s1_size) {
     std::vector<int_fast32_t> lcp(s.size() - 1, 0);
     int_fast32_t prev = 0;
 
@@ -111,20 +110,29 @@ void calc_lcp(std::string s, std::vector<Item> *items, std::vector<int_fast32_t>
         prev = std::max<int_fast32_t>(cur - 1, 0);
     }
 
-    int_fast64_t sum_ = 0;
-    for (int_fast32_t i = 1; i < lcp.size(); i++) {
-        sum_ += lcp[i];
-    }
-    int_fast64_t n = lcp.size();
-    int_fast64_t ans = n * (n + 1) / 2 - sum_;
-    std::cout << ans;
-}
+    std::vector<bool> color(s.size(), true);
 
+    for (int_fast32_t i = 0; i < s1_size; i++) {
+        color[pos->at(i)] = false;
+    }
+
+    int_fast32_t max_lcp = 0;
+    int_fast32_t max_lcp_ind = 0;
+    for (int_fast32_t i = 0; i < lcp.size(); i++) {
+        if ((color[i] != color[i + 1]) && (lcp[i] > max_lcp)) {
+            max_lcp = lcp[i];
+            max_lcp_ind = i;
+        }
+    }
+
+    std::cout << s.substr(items->at(max_lcp_ind).p, max_lcp);
+}
 
 void get_ans(std::string *input_s1, std::string *input_s2) {
     std::vector<Item> items;
     std::vector<Item> new_items;
-    std::string input_s = *input_s1 + '#' + *input_s2 + '$'; // определили исходный массив порядков
+    std::string input_s = *input_s1 + '@' + *input_s2 + '$'; // определили исходный массив порядков
+    int_fast32_t s1_size = input_s1->size() + 1;
 
     std::vector<int_fast32_t> pos(input_s.size(), 0);
 
@@ -152,15 +160,18 @@ void get_ans(std::string *input_s1, std::string *input_s2) {
     while (radix_sort(&items, &new_items, &pos, k, &counter)) {
         k++;
     }
-    calc_lcp(input_s, &items, &pos);
+    calc_lcp(input_s, &items, &pos, s1_size);
 
 }
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
-    std::string input_s1, input_s2;
+    std::string input_s1;
+    std::string input_s2;
+
     std::cin >> input_s1;
     std::cin >> input_s2;
+
     get_ans(&input_s1, &input_s2);
     return 0;
 }
