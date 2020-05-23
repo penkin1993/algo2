@@ -3,41 +3,103 @@
 #include <vector>
 #include <tuple>
 
+struct Item {
+    char symbol;
+    int_fast32_t p;
+    int_fast32_t c;
+
+    Item(char symbol_, int_fast32_t p_, int_fast32_t c_) {
+        symbol = symbol_;
+        p = p_;
+        c = c_;
+    }
+
+    bool operator<(const Item &playerObj) const {
+        return symbol < playerObj.symbol;
+    }
+};
+
+
 inline int_fast32_t positive_mod(int_fast32_t i, int_fast32_t n) {
     return (i % n + n) % n;
 }
 
-void radix_sort(std::vector<std::tuple<char, int_fast32_t, int_fast32_t>> * char_array,
-                std::vector<int_fast32_t> * pos, int_fast32_t k){
+bool radix_sort(std::vector<Item> *items, std::vector<Item> *new_items, std::vector<int_fast32_t> *pos,
+                int_fast32_t k, int_fast32_t counter) {
 
     // получить модуль сдвига
-    int_fast32_t mod =  -(1 << k);
-    //std::cout << mod;
+    int_fast32_t mod = -(1 << k);
 
+    std::vector<int_fast32_t> array_counter(counter + 1, 0);
     std::vector<int_fast32_t> first_c;
+
     // сформировать первый разряд
-    for (int_fast32_t i = 0; i < char_array->size(); i++){
-        int_fast32_t prev_ind = positive_mod(std::get<1>(char_array->at(i)) + mod, char_array->size());
-        first_c.push_back(std::get<2>(char_array->at(pos->at(prev_ind))));
+    for (int_fast32_t i = 0; i < items->size(); i++) {
+        int_fast32_t prev_ind = positive_mod(items->at(i).p + mod, items->size());
+        first_c.push_back(items->at(pos->at(prev_ind)).c);
+        array_counter[first_c.back()] += 1;
+
+        new_items->at(i).symbol = items->at(pos->at(prev_ind)).symbol;
+        new_items->at(i).p = items->at(pos->at(prev_ind)).p;
     }
 
-    // for (int_fast32_t i = 0; i < first_c.size(); i++){
-    //   std::cout << first_c[i] << " " << std::get<2>(char_array->at(i)) << "\n";
-    //}
+    // поменять ссылки
+    for (int_fast32_t i = 0; i < items->size(); i++) {
+        items->at(i).symbol = new_items->at(i).symbol;
+        items->at(i).p = new_items->at(i).p;
+    }
 
-    //отсортировать его
+    // сформировать индексы вставки
+    int_fast32_t t1 = array_counter[0];
+    int_fast32_t t2;
+    array_counter[0] = 0;
+    for (int_fast32_t i = 1; i < array_counter.size(); i++) {
+        t2 = array_counter[i];
+        array_counter[i] = array_counter[i - 1] + t1;
+        t1 = t2;
+    }
+
+    // сортировка
+    std::vector<int_fast32_t> new_first_c(first_c.size(), 0);
+    for (int_fast32_t i = 0; i < items->size(); i++) {
+        int_fast32_t ind = array_counter[first_c[i]];
+
+        new_items->at(ind).symbol = items->at(i).symbol;
+        new_items->at(ind).p = items->at(i).p;
+        new_items->at(ind).c = items->at(i).c;
+
+        array_counter[first_c[i]] += 1;
+        new_first_c[ind] = first_c[i];
+    }
 
 
-    // сформировать новый c
+    int_fast32_t new_counter = 0;
+    int_fast32_t prev = new_items->at(0).c;
+    new_items->at(0).c = 0;
 
-    // + сформировать новый pos
+    for (int_fast32_t i = 1; i < new_items->size(); i++) {
+        if ((new_first_c[i] != new_first_c[i - 1]) | (new_items->at(i).c != prev)) {
+            new_counter++;
+        }
+        prev = new_items->at(i).c;
+        new_items->at(i).c = new_counter;
+    }
+
+    // сформировать новый pos
+    for (int_fast32_t i = 0; i < new_items->size(); i++) {
+        pos->at(new_items->at(i).p) = i;
+    }
+    return new_counter == items->size() - 1;
     
-
-    // выход из него если все классы различыне
+    //std::cout << "\n";
+    //for (int_fast32_t i = 0; i < first_c.size(); i++) {
+    //    std::cout  << new_items->at(i).c << "|" << new_items->at(i).p << "|" << new_items->at(i).symbol << "\n";
+    //}
 }
 
 void get_sort_suffix(std::string input_s) {
-    std::vector<std::tuple<char, int_fast32_t, int_fast32_t>> char_array;
+    std::vector<Item> items;
+    std::vector<Item> new_items;
     input_s += '$'; // определили исходный массив порядков
 
     std::vector<int_fast32_t> pos(input_s.size(), 0);
@@ -45,33 +107,26 @@ void get_sort_suffix(std::string input_s) {
 
     // определили массив p и c
     for (int_fast32_t i = 0; i < input_s.size(); i++) {
-        char_array.emplace_back(input_s[i], i, 0);
+        items.emplace_back(Item(input_s[i], i, 0));
+        new_items.emplace_back(Item(input_s[i], i, 0));
     }
-    std::sort(char_array.begin(), char_array.end());
+    std::sort(items.begin(), items.end());
 
-    for (int_fast32_t i = 0; i < char_array.size(); i++) {
-        pos[std::get<1>(char_array[i])] = i;
+    for (int_fast32_t i = 0; i < items.size(); i++) {
+        pos[items[i].p] = i;
     }
 
     // задание классов классов
     int_fast32_t counter = 0;
-
-    for (int_fast32_t i = 1; i < char_array.size(); i++) {
-        if (std::get<0>(char_array[i]) != std::get<0>(char_array[i - 1])) {
+    for (int_fast32_t i = 1; i < items.size(); i++) {
+        if (items[i].symbol != items[i - 1].symbol) {
             counter++;
         }
-        std::get<2>(char_array[i]) = counter;
+        items[i].c = counter;
     }
 
     // цифровая сортировка
-    radix_sort(& char_array, & pos, 0);
-
-
-    for (int_fast32_t i = 0; i < char_array.size(); i++) {
-        std::cout << std::get<0>(char_array[i]) << " " << std::get<1>(char_array[i]) << " "
-                  << std::get<2>(char_array[i]) << " "<< pos[i] << "\n";
-    }
-
+    radix_sort(&items, &new_items, &pos, 0, counter);
 }
 
 
