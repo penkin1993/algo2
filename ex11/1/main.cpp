@@ -25,7 +25,7 @@ inline int_fast32_t positive_mod(int_fast32_t i, int_fast32_t n) {
 }
 
 bool radix_sort(std::vector<Item> *items, std::vector<Item> *new_items, std::vector<int_fast32_t> *pos,
-                int_fast32_t k, int_fast32_t * counter) {
+                int_fast32_t k, int_fast32_t *counter) {
 
     // получить модуль сдвига
     int_fast32_t mod = -(1 << k);
@@ -97,13 +97,38 @@ bool radix_sort(std::vector<Item> *items, std::vector<Item> *new_items, std::vec
     return new_counter != items->size() - 1;
 }
 
-void get_sort_suffix(std::string input_s) {
+void calc_lcp(std::string s, std::vector<Item> *items, std::vector<int_fast32_t> *pos) {
+    std::vector<int_fast32_t> lcp(s.size() - 1, 0);
+    int_fast32_t prev = 0;
+
+    for (int_fast32_t i = 0; i < pos->size() - 1; i++) {
+        int_fast32_t j = items->at(pos->at(i) - 1).p;
+        //std::cout << " i " << i << " j " << j << "\n";
+        int_fast32_t cur = prev;
+        while (s[i + cur] == s[j + cur]) {
+            cur++;
+        }
+        lcp[pos->at(i)] = cur;
+        prev = std::max<int_fast32_t>(cur - 1, 0);
+    }
+
+
+    //for (int_fast32_t i = 0; i < pos->size(); i++) {
+    //    std::cout << pos->at(i) << " " << items->at(i).p << "\n";
+    //}
+
+    for (int_fast32_t i = 1; i < lcp.size(); i++) {
+        std::cout << lcp[i] << " ";
+    }
+}
+
+
+void get_ans(std::string input_s) {
     std::vector<Item> items;
     std::vector<Item> new_items;
     input_s += '$'; // определили исходный массив порядков
 
     std::vector<int_fast32_t> pos(input_s.size(), 0);
-    // + определить ссылки на элементы char_array. Чтобы по символу в строке input_s находить его tuple
 
     // определили массив p и c
     for (int_fast32_t i = 0; i < input_s.size(); i++) {
@@ -126,24 +151,40 @@ void get_sort_suffix(std::string input_s) {
     }
     // цифровая сортировка
     int32_t k = 0;
-    while (radix_sort(&items, &new_items, &pos, k, &counter)){
+    while (radix_sort(&items, &new_items, &pos, k, &counter)) {
         k++;
     }
 
-    for (auto & item : items) {
-       std::cout  << item.c << "|" << item.p << "|" << item.symbol << "\n";
+    for (int32_t i = 1; i < items.size(); i++) {
+        std::cout << items[i].p + 1 << " ";
     }
-}
+    std::cout << "\n";
 
+    calc_lcp(input_s, &items, &pos);
+
+    /*
+    for (auto &item : items) {
+        std::cout << item.c << "|" << item.p << "|" << item.symbol << "\n";
+    }
+*/
+
+}
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
     //std::string input_s;
     //std::cin >> input_s;
-    //get_sort_suffix(input_s);
-    get_sort_suffix("abacaba");
+    //get_ans(input_s);
+    get_ans("ababb");
 
     // std::cout << input_s << "\n";
 
     return 0;
 }
+
+/*
+1 3 5 2 4
+2 0 1 1
+*/
+
+
