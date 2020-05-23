@@ -108,7 +108,7 @@ void calc_lcp(std::string s, std::vector<Item> *items, std::vector<int_fast32_t>
         while (s[i + cur] == s[j + cur]) {
             cur++;
         }
-        lcp[pos->at(i)] = cur;
+        lcp[pos->at(i)-1] = cur;
         prev = std::max<int_fast32_t>(cur - 1, 0);
     }
 
