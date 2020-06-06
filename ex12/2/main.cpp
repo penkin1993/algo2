@@ -29,6 +29,7 @@ public:
     explicit Trie() {
         nodes.emplace_back();
     }
+
     void add_symbol(char symbol);
 
     void get_ans();
@@ -124,16 +125,14 @@ void Trie::add_symbol(char symbol) {
 }
 
 void Trie::get_ans() {
-    std::cout << nodes.size() << " " << nodes.size() - 1 << "\n";
+    int_fast32_t count = 0;
 
     for (int_fast32_t i = 1; i < nodes.size(); i++) {
-        std::cout << nodes[i].parent + 1 << " " << i + 1 << " " << nodes[i].l + 1 << " ";
         if (nodes[i].r == MAX_LEN) {
-            std::cout << input_str.size() << "\n";
-        } else {
-            std::cout << nodes[i].r << "\n";
+            count++;
         }
     }
+    std::cout << count;
 }
 
 int main() {
@@ -154,11 +153,4 @@ int main() {
 /*
 ababb
 
-7 6
-1 4 1 2
-1 6 2 2
-4 2 3 5
-4 5 5 5
-6 3 3 5
-6 7 5 5
 */
