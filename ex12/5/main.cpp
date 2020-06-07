@@ -6,7 +6,7 @@
 #include <stack>
 #include <algorithm>
 
-int_fast32_t MAX_LEN = 400000;
+int_fast32_t MAX_LEN = 400001;
 
 struct Node {
     int_fast32_t l, r, parent, link = -1;
@@ -162,7 +162,6 @@ void Trie::dfs(std::vector<int_fast32_t> *l, std::vector<int_fast32_t> *lcp) {
 
         int_fast32_t next_depth = depths_stack.top();
         depths_stack.pop();
-
 
         if (next_depth < min_depth) {
             min_depth = next_depth;
