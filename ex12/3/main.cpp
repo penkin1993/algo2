@@ -4,7 +4,7 @@
 #include <tuple>
 #include <unordered_map>
 
-int_fast32_t MAX_LEN = 400000;
+int_fast32_t MAX_LEN = 1000001;
 
 struct Node {
     int_fast32_t l, r, parent, link = -1;
@@ -22,7 +22,6 @@ struct Node {
     }
 };
 
-
 class Trie {
 
 public:
@@ -32,7 +31,8 @@ public:
 
     void add_symbol(char symbol);
 
-    void get_ans(std::vector<std::string> * s);
+    void get_ans(std::vector<std::string> *s);
+
 
 private:
     std::string input_str = "";
@@ -41,11 +41,18 @@ private:
 
     std::pair<int_fast32_t, int_fast32_t> ptr = std::make_pair(0, 0);
 
-    std::pair<int_fast32_t, int_fast32_t> go(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, int_fast32_t r);
+    std::pair<int_fast32_t, int_fast32_t> go(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l,
+                                             int_fast32_t r, std::string *s);
+
+    std::pair<int_fast32_t, int_fast32_t> go2(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, std::string *s);
+
+    int_fast32_t count_contains(std::vector<int_fast32_t> *num_leaves, std::string *s_);
 
     int_fast32_t split(std::pair<int32_t, int32_t> st);
 
     int_fast32_t get_link(int_fast32_t v);
+
+    void get_num_leaves(std::vector<int_fast32_t> *num_leaves);
 };
 
 
@@ -59,7 +66,8 @@ int_fast32_t Trie::get_link(int_fast32_t v) {
     int_fast32_t to = get_link(nodes[v].parent);
 
     return nodes[v].link = split(
-            go(std::make_pair(to, nodes[to].len()), nodes[v].l + (nodes[v].parent == 0), nodes[v].r));
+            go(std::make_pair(to, nodes[to].len()), nodes[v].l + (nodes[v].parent == 0),
+               nodes[v].r, &input_str));
 }
 
 int_fast32_t Trie::split(std::pair<int32_t, int32_t> st) {
@@ -74,6 +82,7 @@ int_fast32_t Trie::split(std::pair<int32_t, int32_t> st) {
     int_fast32_t id = nodes.size();
     nodes.emplace_back();
     nodes[id] = Node(v.l, v.l + st.second, v.parent);
+
     nodes[v.parent].get(input_str[v.l]) = id;
     nodes[id].get(input_str[v.l + st.second]) = st.first;
     nodes[st.first].parent = id;
@@ -81,31 +90,12 @@ int_fast32_t Trie::split(std::pair<int32_t, int32_t> st) {
     return id;
 }
 
-std::pair<int_fast32_t, int_fast32_t>
-Trie::go(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, int_fast32_t r) {
-    while (l < r)
-        if (st.second == nodes[st.first].len()) {
-            st = std::make_pair(nodes[st.first].get(input_str[l]), 0);
-            if (st.first == -1) {
-                return st;
-            }
-        } else {
-            if (input_str[nodes[st.first].l + st.second] != input_str[l])
-                return std::make_pair(-1, -1);
-            if (r - l < nodes[st.first].len() - st.second)
-                return std::make_pair(st.first, st.second + r - l);
-            l += nodes[st.first].len() - st.second;
-            st.second = nodes[st.first].len();
-        }
-    return st;
-}
-
 void Trie::add_symbol(char symbol) {
     int_fast32_t pos = input_str.size();
     input_str += symbol;
 
     while (true) {
-        std::pair<int_fast32_t, int_fast32_t> nptr = go(ptr, pos, pos + 1);
+        std::pair<int_fast32_t, int_fast32_t> nptr = go(ptr, pos, pos + 1, &input_str);
         if (nptr.first != -1) {
             ptr = nptr;
             return;
@@ -124,22 +114,99 @@ void Trie::add_symbol(char symbol) {
     }
 }
 
-void Trie::get_ans(std::vector<std::string> * s) {
-    int_fast64_t count = 0;
-    for (auto &node : nodes) {
-        if (node.r == MAX_LEN) {
-            count += input_str.size() - node.l;
+std::pair<int_fast32_t, int_fast32_t>
+Trie::go(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, int_fast32_t r, std::string *s) {
+    while (l < r)
+        if (st.second == nodes[st.first].len()) {
+            st = std::make_pair(nodes[st.first].get(s->at(l)), 0);
+            if (st.first == -1) {
+                return st;
+            }
         } else {
-            count += node.r - node.l;
+            if (input_str[nodes[st.first].l + st.second] != s->at(l))
+                return std::make_pair(-1, -1);
+            if (r - l < nodes[st.first].len() - st.second)
+                return std::make_pair(st.first, st.second + r - l);
+            l += nodes[st.first].len() - st.second;
+            st.second = nodes[st.first].len();
+        }
+    return st;
+}
+
+
+
+std::pair<int_fast32_t, int_fast32_t>
+Trie::go2(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, std::string *s) {
+    int_fast32_t r = l + 1;
+    while (true)
+        if (st.second == nodes[st.first].len()) {
+            st = std::make_pair(nodes[st.first].get(s->at(l)), 0);
+            if (st.first == -1) {
+                //std::cout << input_str[nodes[st.first].l + st.second] << "";
+                return st;
+            }
+        } else {
+            if (input_str[nodes[st.first].l + st.second] != s->at(l)) {
+                return std::make_pair(-1, -1);
+            }
+            if (r - l < nodes[st.first].len() - st.second) {
+                //std::cout << input_str[nodes[st.first].l + st.second] << "";
+                return std::make_pair(st.first, st.second + r - l);
+            }
+            st.second = nodes[st.first].len();
+            //std::cout << input_str[nodes[st.first].l + st.second] << "";
+            return st;
+        }
+}
+
+
+int_fast32_t Trie::count_contains(std::vector<int_fast32_t> *num_leaves, std::string *s_) {
+    if (!nodes[0].children.count(s_->at(0))) {
+        return 0;
+    }
+    if (s_->size() > input_str.size()){
+        return 0;
+    }
+
+    std::pair<int32_t, int32_t> st = std::make_pair(0, 0);
+    // ставим метку на ноду
+    int_fast32_t num;
+
+    for (int_fast32_t i = 0; i < s_->size(); i++) {
+        st = go2(st, i, s_);
+
+        if (st.first == -1) {
+            return 0;
+        }
+        num = num_leaves->at(st.first);
+
+    }
+    return num;
+}
+
+void Trie::get_ans(std::vector<std::string> *s) {
+    std::vector<int_fast32_t> counter(s->size(), 0);
+
+    std::vector<int_fast32_t> num_leaves(nodes.size(), 0);
+    get_num_leaves(&num_leaves);
+
+    for (auto &i : *s) {
+        std::cout << count_contains(&num_leaves, &i) << "\n";
+    }
+}
+
+
+void Trie::get_num_leaves(std::vector<int_fast32_t> *num_leaves) {
+    for (int_fast32_t i = 0; i < nodes.size(); i++) {
+        if (nodes[i].r == MAX_LEN) {
+            num_leaves->at(i) = 1;
+            int_fast32_t next_node = nodes[i].parent;
+            while (next_node != 0) {
+                num_leaves->at(next_node) += 1;
+                next_node = nodes[next_node].parent;
+            }
         }
     }
-    std::cout << count;
-
-
-
-
-
-
 }
 
 int main() {
@@ -157,6 +224,7 @@ int main() {
     }
 
     std::cin >> input_str;
+    input_str += "$";
 
     Trie trie = Trie();
 
@@ -168,4 +236,5 @@ int main() {
 
     return 0;
 }
+
 
