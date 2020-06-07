@@ -43,7 +43,7 @@ private:
 
     std::pair<int_fast32_t, int_fast32_t> go(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, int_fast32_t r);
 
-    std::pair<int_fast32_t, int_fast32_t> go2(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, const char *s);
+    std::pair<int_fast32_t, int_fast32_t> go_ones(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, const char *s);
 
     int_fast32_t count_contains(std::vector<int_fast32_t> *num_leaves, std::string *s_);
 
@@ -134,7 +134,7 @@ Trie::go(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, int_fast32_t 
 
 
 std::pair<int_fast32_t, int_fast32_t>
-Trie::go2(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, const char *s) {
+Trie::go_ones(std::pair<int_fast32_t, int_fast32_t> st, int_fast32_t l, const char *s) {
     int_fast32_t r = l + 1;
     while (true)
         if (st.second == nodes[st.first].len()) {
@@ -164,11 +164,10 @@ int_fast32_t Trie::count_contains(std::vector<int_fast32_t> *num_leaves, std::st
     }
 
     std::pair<int32_t, int32_t> st = std::make_pair(0, 0);
-    // ставим метку на ноду
     int_fast32_t num;
 
     for (int_fast32_t i = 0; i < s_->size(); i++) {
-        st = go2(st, i, &s_->at(i));
+        st = go_ones(st, i, &s_->at(i));
 
         if (st.first == -1) {
             return 0;
@@ -193,7 +192,7 @@ int_fast32_t Trie::get_num_leaves(std::vector<int_fast32_t> *num_leaves, int_fas
         return num_leaves->at(id);
     }
 
-    if (nodes[id].r == MAX_LEN) { // лист
+    if (nodes[id].r == MAX_LEN) {
         num_leaves->at(id) = 1;
         return 1;
     }
