@@ -3,6 +3,8 @@
 #include <vector>
 #include <tuple>
 #include <unordered_map>
+#include <stack>
+#include <algorithm>
 
 int_fast32_t MAX_LEN = 400000;
 
@@ -46,6 +48,8 @@ private:
     int_fast32_t split(std::pair<int32_t, int32_t> st);
 
     int_fast32_t get_link(int_fast32_t v);
+
+    void dfs(std::vector<int_fast32_t> *l, std::vector<int_fast32_t> *lcp);
 };
 
 
@@ -125,21 +129,72 @@ void Trie::add_symbol(char symbol) {
 }
 
 void Trie::get_ans() {
-    int_fast64_t count = 0;
-    for (auto & node : nodes) {
-        if (node.r == MAX_LEN) {
-            count += input_str.size() - node.l;
-        } else {
-            count += node.r - node.l;
+
+    std::vector<int_fast32_t> l;
+    std::vector<int_fast32_t> lcp;
+    dfs(&l, &lcp);
+
+    for (int_fast32_t i = 1; i < lcp.size(); i++) {
+        std::cout << input_str.size() - l[i] + 1 << " ";
+    }
+
+    std::cout << "\n";
+
+    for (int_fast32_t i = 2; i < lcp.size(); i++) {
+        std::cout << lcp[i] << " ";
+    }
+
+}
+
+void Trie::dfs(std::vector<int_fast32_t> *l, std::vector<int_fast32_t> *lcp) {
+
+    std::stack<int_fast32_t> nodes_stack;
+    nodes_stack.push(0);
+
+    std::stack<int_fast32_t> depths_stack;
+    depths_stack.push(0);
+
+    int_fast32_t min_depth = 0;
+
+    while (!nodes_stack.empty()) {
+        int_fast32_t next_node = nodes_stack.top();
+        nodes_stack.pop();
+
+        int_fast32_t next_depth = depths_stack.top();
+        depths_stack.pop();
+
+
+        if (next_depth < min_depth) {
+            min_depth = next_depth;
+        }
+
+        if (!nodes[next_node].children.empty()) { // если не лист
+
+            std::vector<std::pair<char, int_fast32_t>> children_ord; // для итерации в лексикографическом порядке
+            for (auto const &x : nodes[next_node].children) {
+                children_ord.emplace_back(x.first, x.second);
+            }
+            std::sort(children_ord.begin(), children_ord.end());
+
+            for (int_fast32_t i = children_ord.size() - 1; i >= 0; i--) {
+                nodes_stack.push(children_ord[i].second);
+                depths_stack.push(next_depth + nodes[next_node].r - nodes[next_node].l);
+            }
+
+        } else { // лист
+            l->push_back(
+                    next_depth + std::min<int_fast32_t>(nodes[next_node].r, input_str.size()) - nodes[next_node].l);
+            lcp->push_back(min_depth);
+            min_depth = next_depth;
         }
     }
-    std::cout << count;
 }
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
     std::string input_str;
     std::cin >> input_str;
+    input_str += "$";
 
     Trie trie = Trie();
 
@@ -150,4 +205,3 @@ int main() {
     trie.get_ans();
     return 0;
 }
-

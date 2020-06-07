@@ -32,7 +32,7 @@ public:
 
     void add_symbol(char symbol);
 
-    void get_ans();
+    void get_ans(std::vector<std::string> * s);
 
 private:
     std::string input_str = "";
@@ -124,9 +124,9 @@ void Trie::add_symbol(char symbol) {
     }
 }
 
-void Trie::get_ans() {
+void Trie::get_ans(std::vector<std::string> * s) {
     int_fast64_t count = 0;
-    for (auto & node : nodes) {
+    for (auto &node : nodes) {
         if (node.r == MAX_LEN) {
             count += input_str.size() - node.l;
         } else {
@@ -134,11 +134,28 @@ void Trie::get_ans() {
         }
     }
     std::cout << count;
+
+
+
+
+
+
 }
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
+
+    int_fast32_t n;
+    std::cin >> n;
+
     std::string input_str;
+    std::vector<std::string> s;
+
+    for (int_fast32_t i = 0; i < n; i++) {
+        std::cin >> input_str;
+        s.push_back(input_str);
+    }
+
     std::cin >> input_str;
 
     Trie trie = Trie();
@@ -147,7 +164,8 @@ int main() {
         trie.add_symbol(i);
     }
 
-    trie.get_ans();
+    trie.get_ans(&s);
+
     return 0;
 }
 

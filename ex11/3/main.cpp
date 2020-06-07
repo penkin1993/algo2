@@ -121,10 +121,10 @@ void calc_lcp(std::string s, std::vector<Item> *items, std::vector<int_fast32_t>
 }
 
 
-void get_ans(std::string *input_s1, std::string *input_s2) {
+void get_ans(std::string input_s) {
     std::vector<Item> items;
     std::vector<Item> new_items;
-    std::string input_s = *input_s1 + '#' + *input_s2 + '$'; // определили исходный массив порядков
+    input_s += '$'; // определили исходный массив порядков
 
     std::vector<int_fast32_t> pos(input_s.size(), 0);
 
@@ -158,9 +158,8 @@ void get_ans(std::string *input_s1, std::string *input_s2) {
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
-    std::string input_s1, input_s2;
-    std::cin >> input_s1;
-    std::cin >> input_s2;
-    get_ans(&input_s1, &input_s2);
+    std::string input_s;
+    std::cin >> input_s;
+    get_ans(input_s);
     return 0;
 }

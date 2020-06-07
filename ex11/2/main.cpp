@@ -186,4 +186,3 @@ int main() {
     get_ans(input_s, &all_str);
     return 0;
 }
-
