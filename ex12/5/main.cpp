@@ -9,12 +9,12 @@
 int_fast32_t MAX_LEN = 400001;
 
 struct Node {
-    int_fast32_t l, r, parent, link = -1;
-    std::unordered_map<char, int_fast32_t> children;
-
     explicit Node(int_fast32_t l = 0, int_fast32_t r = 0,
                   int_fast32_t parent = -1)
             : l(l), r(r), parent(parent) {}
+
+    int_fast32_t l, r, parent, link = -1;
+    std::unordered_map<char, int_fast32_t> children;
 
     int_fast32_t len() const { return r - l; }
 
@@ -23,7 +23,6 @@ struct Node {
         return children[c];
     }
 };
-
 
 class Trie {
 
@@ -167,9 +166,9 @@ void Trie::dfs(std::vector<int_fast32_t> *l, std::vector<int_fast32_t> *lcp) {
             min_depth = next_depth;
         }
 
-        if (!nodes[next_node].children.empty()) { // если не лист
+        if (!nodes[next_node].children.empty()) {
 
-            std::vector<std::pair<char, int_fast32_t>> children_ord; // для итерации в лексикографическом порядке
+            std::vector<std::pair<char, int_fast32_t>> children_ord;
             for (auto const &x : nodes[next_node].children) {
                 children_ord.emplace_back(x.first, x.second);
             }
@@ -180,7 +179,7 @@ void Trie::dfs(std::vector<int_fast32_t> *l, std::vector<int_fast32_t> *lcp) {
                 depths_stack.push(next_depth + nodes[next_node].r - nodes[next_node].l);
             }
 
-        } else { // лист
+        } else {
             l->push_back(
                     next_depth + std::min<int_fast32_t>(nodes[next_node].r, input_str.size()) - nodes[next_node].l);
             lcp->push_back(min_depth);

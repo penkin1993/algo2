@@ -7,12 +7,12 @@
 int_fast32_t MAX_LEN = 400000;
 
 struct Node {
-    int_fast32_t l, r, parent, link = -1;
-    std::unordered_map<char, int_fast32_t> children;
-
     explicit Node(int_fast32_t l = 0, int_fast32_t r = 0,
                   int_fast32_t parent = -1)
             : l(l), r(r), parent(parent) {}
+
+    int_fast32_t l, r, parent, link = -1;
+    std::unordered_map<char, int_fast32_t> children;
 
     int_fast32_t len() const { return r - l; }
 
@@ -126,7 +126,7 @@ void Trie::add_symbol(char symbol) {
 
 void Trie::get_ans() {
     int_fast64_t count = 0;
-    for (auto & node : nodes) {
+    for (auto &node : nodes) {
         if (node.r == MAX_LEN) {
             count += input_str.size() - node.l;
         } else {
