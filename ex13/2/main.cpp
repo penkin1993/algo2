@@ -1,8 +1,8 @@
 #include <iostream>
 #include <iomanip>
-#include <vector>
+#include <queue>
 
-double F_INF = 10000000;
+double F_INF = 1e9;
 double EPS = 1e-9;
 
 struct Line {
@@ -17,14 +17,13 @@ struct Point {
     explicit Point(double x_ = 0, double y_ = 0) : x(x_), y(y_) {}
 
     bool intersect_sign(Line line_) const {
-        return line_.a * x + line_.b * y + line_.c > EPS; // TODO: Включить случай
+        return line_.a * x + line_.b * y + line_.c > EPS;
     }
 
     double vector_prod(Point point_) const {
         return x * point_.y - y * point_.x;
     }
 };
-
 
 struct Segment {
 
@@ -34,12 +33,11 @@ public:
 
     Line line;
 
-    explicit Segment(double x0_, double y0_,
-                     double x1_, double y1_) : point0(x0_, y0_), point1(x1_, y1_) {
+    explicit Segment(Point point0_, Point point1_) : point0(point0_), point1(point1_) {
         // точки не совпадают
-        line.a = y0_ - y1_;
-        line.b = x1_ - x0_;
-        line.c = x0_ * y1_ - x1_ * y0_;
+        line.a = point0.y - point1.y;
+        line.b = point1.x - point0.x;
+        line.c = point0.x * point1.y - point1.x * point0.y;
     }
 
     bool is_intersect(Line line_) const {
@@ -55,7 +53,6 @@ public:
         if (!is_intersect(line_)) {
             throw std::invalid_argument("Received wrong value");
         }
-
         // решаем уравнение
         double d = line.a * line_.b - line.b * line_.a;
 
@@ -65,9 +62,7 @@ public:
 
         return Point(dx / d, dy / d);
     }
-
 };
-
 
 class Figure {
 
@@ -79,49 +74,83 @@ public:
     double calc_square(); // вычисление площади получивашейся фигуры
 
 private:
-    std::vector<Segment> segments; // каждый раз создавать новый ???
+    std::queue<Point> points;
 
 };
 
 Figure::Figure() {
-    segments.emplace_back(-F_INF, -F_INF, -F_INF, F_INF);
-    segments.emplace_back(-F_INF, F_INF, F_INF, F_INF);
-    segments.emplace_back(F_INF, F_INF, F_INF, -F_INF);
-    segments.emplace_back(F_INF, -F_INF, -F_INF, F_INF);
-}
-
-void Figure::split(double a, double b, double c) {
-    Line new_line = Line(a, b, c);
-    std::vector<Segment> new_segments;
-    Point new_point;
-
-    for (auto &segment : segments) {
-        if (segment.point0.intersect_sign(new_line) & segment.point1.intersect_sign(new_line)) {
-            new_segments.push_back(segment);
-
-        } else if (!segment.point0.intersect_sign(new_line) & !segment.point1.intersect_sign(new_line)) {
-            continue;
-
-        } else {
-            new_point = segment.intersection(new_line);
-            if (segment.point0.intersect_sign(new_line)) {
-                new_segments.emplace_back(segment.point0.x, segment.point0.y, new_point.x, new_point.y);
-            } else {
-                new_segments.emplace_back(segment.point1.x, segment.point1.y, new_point.x, new_point.y);
-            }
-        }
-    }
-    segments = new_segments;
+    points.emplace(Point(-F_INF, -F_INF));
+    points.emplace(Point(F_INF, -F_INF));
+    points.emplace(Point(F_INF, F_INF));
+    points.emplace(Point(-F_INF, F_INF));
 }
 
 double Figure::calc_square() {
     double square = 0;
-    for (auto & segment : segments) {
-     square += 0.5*segment.point0.vector_prod(segment.point1);
+
+    Point first_point = points.front();
+
+    Point next_point0 = points.front();
+    points.pop();
+
+    while (!points.empty()) {
+        Point next_point1 = points.front();
+        points.pop();
+
+        square += 0.5 * next_point0.vector_prod(next_point1);
+
+        next_point0 = next_point1;
     }
+    square += 0.5 * next_point0.vector_prod(first_point);
+
     return square;
 }
 
+void Figure::split(double a, double b, double c) {
+    Line new_line = Line(a, b, c);
+
+    int_fast32_t n = points.size();
+    Point first_point = points.front();
+
+    Point next_point0 = points.front();
+    points.pop();
+
+    for (int_fast32_t i = 0; i < n - 1; i++) {
+
+        Point next_point1 = points.front();
+        points.pop();
+
+        if (next_point0.intersect_sign(new_line) & next_point1.intersect_sign(new_line)) {
+            points.push(next_point1);
+
+        } else if (!next_point0.intersect_sign(new_line) & !next_point1.intersect_sign(new_line)) {
+            next_point0 = next_point1;
+            continue;
+
+        } else {
+            Point new_point = Segment(next_point0, next_point1).intersection(new_line);
+            points.push(new_point);
+
+            if (next_point1.intersect_sign(new_line)) {
+                points.push(next_point1);
+            }
+        }
+        next_point0 = next_point1;
+    }
+
+    if (next_point0.intersect_sign(new_line) & first_point.intersect_sign(new_line)) {
+        points.push(first_point);
+
+    } else if (next_point0.intersect_sign(new_line) & !first_point.intersect_sign(new_line)) {
+        Point new_point = Segment(next_point0, first_point).intersection(new_line);
+        points.push(new_point);
+
+    } else if (!next_point0.intersect_sign(new_line) & first_point.intersect_sign(new_line)) {
+        Point new_point = Segment(next_point0, first_point).intersection(new_line);
+        points.push(new_point);
+        points.push(first_point);
+    }
+}
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
@@ -139,7 +168,7 @@ int main() {
         figure.split(a, b, c);
     }
 
-    figure.calc_square();
+    std::cout << figure.calc_square();
 
     return 0;
 }
