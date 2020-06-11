@@ -45,7 +45,7 @@ public:
         double sign0 = line_.a * point0.x + line_.b * point0.y + line_.c;
         double sign1 = line_.a * point1.x + line_.b * point1.y + line_.c;
 
-        return sign0 * sign1 < 0;
+        return ((sign0 > EPS) && (sign1 <= EPS)) | ((sign0 <= EPS) && (sign1 > EPS));
     }
 
     Point intersection(Line line_) const {
