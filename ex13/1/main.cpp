@@ -106,6 +106,7 @@ int main() {
     std::cin >> n;
 
     double x1, y1, r1, x2, y2, r2;
+
     for (int_fast32_t i = 0; i < n; i++) {
         std::cin >> x1 >> y1 >> r1;
         std::cin >> x2 >> y2 >> r2;

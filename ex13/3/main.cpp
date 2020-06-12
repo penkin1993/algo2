@@ -3,9 +3,9 @@
 #include <utility>
 #include <cmath>
 
-long double F_INF = 101;
-long double F_INF_LIM = 100;
-long double EPS = 1e-13;
+long double F_INF = 1e12 + 0.01;
+long double F_INF_LIM = 1e12;
+long double EPS = 1e-8;
 long double SQUARE_LIM = 1e-8;
 
 
@@ -25,14 +25,13 @@ struct Point {
     }
 
     bool intersect_sign(Line line_) const {
-        return line_.a * x + line_.b * y + line_.c >= EPS;
+        return line_.a * x + line_.b * y + line_.c > EPS;
     }
 
     long double vector_prod(Point point_) const {
         return x * point_.y - y * point_.x;
     }
 };
-
 
 struct Segment {
 
@@ -43,25 +42,22 @@ public:
     Line line;
 
     explicit Segment(Point point0_, Point point1_) : point0(point0_), point1(point1_) {
-        // точки не совпадают
         line.a = point0.y - point1.y;
         line.b = point1.x - point0.x;
         line.c = point0.x * point1.y - point1.x * point0.y;
     }
 
     bool is_intersect(Line line_) const {
-        // функция персечения двух отрезков
         long double sign0 = line_.a * point0.x + line_.b * point0.y + line_.c;
         long double sign1 = line_.a * point1.x + line_.b * point1.y + line_.c;
 
-        return ((sign0 >= EPS) && (sign1 <= -EPS)) | ((sign0 <= -EPS) && (sign1 >= EPS));
+        return ((sign0 >= EPS) && (sign1 <= -EPS)) || ((sign0 <= -EPS) && (sign1 >= EPS));
     }
 
     Point intersection(Line line_) const {
         if (!is_intersect(line_)) {
-            throw std::invalid_argument("Received wrong value");
+            throw std::invalid_argument("Received a wrong value");
         }
-        // решаем уравнение
         long double d = line.a * line_.b - line.b * line_.a;
 
         long double dx = line.b * line_.c - line_.b * line.c;
@@ -79,16 +75,16 @@ public:
 
     explicit Figure(std::queue<Point> points_);
 
-    bool split(std::queue<Figure> *figure_queue, long double a, long double b, long double c); // алгоритм сечения фигуры прямой
+    bool split(std::queue<Figure> *figure_queue, long double a, long double b, long double c);
 
-    long double calc_square(); // вычисление площади получивашейся фигуры
+    long double calc_square();
 
     std::queue<Point> points;
 
 private:
-
     static bool check_lim(Point point);
 };
+
 
 Figure::Figure() {
     points.emplace(Point(-F_INF, -F_INF));
@@ -102,7 +98,7 @@ Figure::Figure(std::queue<Point> points_) {
 }
 
 bool Figure::check_lim(Point point) {
-    return (std::fabs(point.x) >= F_INF_LIM) | (std::fabs(point.y) >= F_INF_LIM);
+    return (std::abs(point.x) >= F_INF_LIM) || (std::abs(point.y) >= F_INF_LIM);
 }
 
 bool Figure::split(std::queue<Figure> *figure_queue, long double a, long double b, long double c) {
@@ -122,15 +118,15 @@ bool Figure::split(std::queue<Figure> *figure_queue, long double a, long double 
         Point next_point1 = points.front();
         points.pop();
 
-        if (next_point1.is_on_the_line(new_line)) { // точка пересечения совпадает
+        if (next_point1.is_on_the_line(new_line)) {
             points.push(next_point1);
             new_points.push(next_point1);
 
-        } else if ((next_point0.intersect_sign(new_line) || next_point0.is_on_the_line(new_line)) &
+        } else if ((next_point0.intersect_sign(new_line) || next_point0.is_on_the_line(new_line)) &&
                    next_point1.intersect_sign(new_line)) {
             points.push(next_point1);
 
-        } else if ((!next_point0.intersect_sign(new_line) || next_point0.is_on_the_line(new_line)) &
+        } else if ((!next_point0.intersect_sign(new_line) || next_point0.is_on_the_line(new_line)) &&
                    !next_point1.intersect_sign(new_line)) {
 
             new_points.push(next_point1);
@@ -182,10 +178,6 @@ long double Figure::calc_square() {
     }
     square += 0.5 * next_point0.vector_prod(first_point);
 
-    if (square <= SQUARE_LIM) {
-        square = 0;
-    }
-
     return square;
 }
 
@@ -200,8 +192,6 @@ Line get_line(Point point0_, Point point1_) {
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
-    // std::cout << std::fixed;
-    // std::cout << std::setprecision(10);
 
     int_fast32_t n;
     std::cin >> n;
@@ -227,7 +217,6 @@ int main() {
             }
         }
     }
-
     std::vector<long double> square_array;
 
     while (!figure_queue.empty()) {
@@ -235,7 +224,7 @@ int main() {
         figure_queue.pop();
 
         long double next_square = figure.calc_square();
-        if (next_square != 0) {
+        if (next_square > SQUARE_LIM) {
             square_array.push_back(next_square);
         }
     }

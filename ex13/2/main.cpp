@@ -34,26 +34,22 @@ public:
     Line line;
 
     explicit Segment(Point point0_, Point point1_) : point0(point0_), point1(point1_) {
-        // точки не совпадают
         line.a = point0.y - point1.y;
         line.b = point1.x - point0.x;
         line.c = point0.x * point1.y - point1.x * point0.y;
     }
 
     bool is_intersect(Line line_) const {
-        // функция персечения двух отрезков
         double sign0 = line_.a * point0.x + line_.b * point0.y + line_.c;
         double sign1 = line_.a * point1.x + line_.b * point1.y + line_.c;
 
-        return ((sign0 > EPS) && (sign1 <= EPS)) | ((sign0 <= EPS) && (sign1 > EPS));
+        return ((sign0 > EPS) && (sign1 < -EPS)) | ((sign0 < -EPS) && (sign1 > EPS));
     }
 
     Point intersection(Line line_) const {
-        // пересекаются ли они. Если да, то возвращать точку, если нет, то возвращать F_INF + 1
         if (!is_intersect(line_)) {
             throw std::invalid_argument("Received wrong value");
         }
-        // решаем уравнение
         double d = line.a * line_.b - line.b * line_.a;
 
         double dx = line.b * line_.c - line_.b * line.c;
@@ -110,12 +106,13 @@ void Figure::split(double a, double b, double c) {
     Line new_line = Line(a, b, c);
 
     int_fast32_t n = points.size();
-    Point first_point = points.front();
 
     Point next_point0 = points.front();
     points.pop();
 
-    for (int_fast32_t i = 0; i < n - 1; i++) {
+    points.push(next_point0);
+
+    for (int_fast32_t i = 0; i < n; i++) {
 
         Point next_point1 = points.front();
         points.pop();
@@ -136,19 +133,6 @@ void Figure::split(double a, double b, double c) {
             }
         }
         next_point0 = next_point1;
-    }
-
-    if (next_point0.intersect_sign(new_line) & first_point.intersect_sign(new_line)) {
-        points.push(first_point);
-
-    } else if (next_point0.intersect_sign(new_line) & !first_point.intersect_sign(new_line)) {
-        Point new_point = Segment(next_point0, first_point).intersection(new_line);
-        points.push(new_point);
-
-    } else if (!next_point0.intersect_sign(new_line) & first_point.intersect_sign(new_line)) {
-        Point new_point = Segment(next_point0, first_point).intersection(new_line);
-        points.push(new_point);
-        points.push(first_point);
     }
 }
 
