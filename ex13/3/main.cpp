@@ -2,23 +2,24 @@
 #include <queue>
 #include <utility>
 #include <cmath>
+#include <algorithm>
 
-long double F_INF = 1e12 + 0.01;
-long double F_INF_LIM = 1e12;
-long double EPS = 1e-8;
-long double SQUARE_LIM = 1e-8;
+double F_INF = 1e4 + 1;
+double F_INF_LIM = 1e4;
+double EPS = 1e-8;
+double SQUARE_LIM = 1e-8;
 
 
 struct Line {
-    long double a{}, b{}, c{};
+    double a{}, b{}, c{};
 
-    explicit Line(long double a_ = 0, long double b_ = 0, long double c_ = 0) : a(a_), b(b_), c(c_) {}
+    explicit Line(double a_ = 0, double b_ = 0, double c_ = 0) : a(a_), b(b_), c(c_) {}
 };
 
 struct Point {
-    long double x, y;
+    double x, y;
 
-    explicit Point(long double x_ = 0, long double y_ = 0) : x(x_), y(y_) {}
+    explicit Point(double x_ = 0, double y_ = 0) : x(x_), y(y_) {}
 
     bool is_on_the_line(Line line_) const {
         return std::fabs(line_.a * x + line_.b * y + line_.c) < EPS;
@@ -28,7 +29,7 @@ struct Point {
         return line_.a * x + line_.b * y + line_.c > EPS;
     }
 
-    long double vector_prod(Point point_) const {
+    double vector_prod(Point point_) const {
         return x * point_.y - y * point_.x;
     }
 };
@@ -48,8 +49,8 @@ public:
     }
 
     bool is_intersect(Line line_) const {
-        long double sign0 = line_.a * point0.x + line_.b * point0.y + line_.c;
-        long double sign1 = line_.a * point1.x + line_.b * point1.y + line_.c;
+        double sign0 = line_.a * point0.x + line_.b * point0.y + line_.c;
+        double sign1 = line_.a * point1.x + line_.b * point1.y + line_.c;
 
         return ((sign0 >= EPS) && (sign1 <= -EPS)) || ((sign0 <= -EPS) && (sign1 >= EPS));
     }
@@ -58,11 +59,11 @@ public:
         if (!is_intersect(line_)) {
             throw std::invalid_argument("Received a wrong value");
         }
-        long double d = line.a * line_.b - line.b * line_.a;
+        double d = line.a * line_.b - line.b * line_.a;
 
-        long double dx = line.b * line_.c - line_.b * line.c;
+        double dx = line.b * line_.c - line_.b * line.c;
 
-        long double dy = line.c * line_.a - line_.c * line.a;
+        double dy = line.c * line_.a - line_.c * line.a;
 
         return Point(dx / d, dy / d);
     }
@@ -75,9 +76,9 @@ public:
 
     explicit Figure(std::queue<Point> points_);
 
-    bool split(std::queue<Figure> *figure_queue, long double a, long double b, long double c);
+    bool split(std::queue<Figure> *figure_queue, double a, double b, double c);
 
-    long double calc_square();
+    double calc_square();
 
     std::queue<Point> points;
 
@@ -101,7 +102,7 @@ bool Figure::check_lim(Point point) {
     return (std::abs(point.x) >= F_INF_LIM) || (std::abs(point.y) >= F_INF_LIM);
 }
 
-bool Figure::split(std::queue<Figure> *figure_queue, long double a, long double b, long double c) {
+bool Figure::split(std::queue<Figure> *figure_queue, double a, double b, double c) {
     Line new_line = Line(a, b, c);
 
     std::queue<Point> new_points;
@@ -151,8 +152,8 @@ bool Figure::split(std::queue<Figure> *figure_queue, long double a, long double 
     return points.size() > 2;
 }
 
-long double Figure::calc_square() {
-    long double square = 0;
+double Figure::calc_square() {
+    double square = 0;
 
     Point first_point = points.front();
     if (check_lim(first_point)) {
@@ -183,9 +184,9 @@ long double Figure::calc_square() {
 
 
 Line get_line(Point point0_, Point point1_) {
-    long double a = point0_.y - point1_.y;
-    long double b = point1_.x - point0_.x;
-    long double c = point0_.x * point1_.y - point1_.x * point0_.y;
+    double a = point0_.y - point1_.y;
+    double b = point1_.x - point0_.x;
+    double c = point0_.x * point1_.y - point1_.x * point0_.y;
 
     return Line(a, b, c);
 }
@@ -200,7 +201,7 @@ int main() {
 
     figure_queue.push(Figure());
 
-    long double x0, y0, x1, y1;
+    double x0, y0, x1, y1;
 
     for (int_fast32_t i = 0; i < n; i++) {
         std::cin >> x0 >> y0 >> x1 >> y1;
@@ -217,20 +218,21 @@ int main() {
             }
         }
     }
-    std::vector<long double> square_array;
+    std::vector<double> square_array;
 
     while (!figure_queue.empty()) {
         Figure figure = figure_queue.front();
         figure_queue.pop();
 
-        long double next_square = figure.calc_square();
+        double next_square = figure.calc_square();
         if (next_square > SQUARE_LIM) {
             square_array.push_back(next_square);
         }
     }
     std::cout << square_array.size() << "\n";
+    std::sort(square_array.begin(), square_array.end());
 
-    for (long double i : square_array) {
+    for (double i : square_array) {
         std::cout << i << "\n";
     }
     return 0;
