@@ -109,7 +109,6 @@ void get_result(std::string num1, std::string num2) {
             next_rest += rest / dev;
             ans[i] += rest % dev;
         }
-
     }
 
     if (next_rest != 0){
