@@ -53,33 +53,60 @@ std::vector<int_fast32_t> multiply(std::vector<int_fast32_t> const &a, std::vect
     return result;
 }
 
-void get_result(std::string & input_str) {
+std::vector<int_fast32_t>
+get_result_by_symbol(std::string const &input_str1, std::string const &input_str2, char const symbol) {
 
-    std::vector<int_fast32_t> place_array (input_str.size(), 1);
-    for (int_fast32_t i = 0; i < place_array.size(); i++){
-        place_array[i] = input_str[i] == '1';
+    std::vector<int_fast32_t> array1;
+    std::vector<int_fast32_t> array2;
+
+    for (char i : input_str1) {
+        array1.push_back(i == symbol);
     }
-    std::vector<int_fast32_t> result = multiply(place_array, place_array);
 
-    int_fast64_t pos_counter = 0;
+    array2.push_back(input_str2[0] == symbol);
+    for (int_fast32_t i = input_str2.size() - 1; i > 0; i--) {
+        array2.push_back(input_str2[i] == symbol);
+    }
 
-    for (int_fast32_t i = 0; i < place_array.size(); i++){
-        if (place_array[i]){
-            pos_counter += (result[2*i] - 1) / 2;
+    return multiply(array1, array2);
+}
+
+
+void get_result(std::string const &input_str1, std::string const &input_str2, int_fast32_t m) {
+
+    std::vector<int_fast32_t> res_a = get_result_by_symbol(input_str1, input_str2, 'A');
+    std::vector<int_fast32_t> res_c = get_result_by_symbol(input_str1, input_str2, 'C');
+    std::vector<int_fast32_t> res_g = get_result_by_symbol(input_str1, input_str2, 'G');
+    std::vector<int_fast32_t> res_t = get_result_by_symbol(input_str1, input_str2, 'T');
+
+    std::vector<int_fast32_t> res(m, 0);
+
+    for (int_fast32_t i = 0; i < res_a.size(); i++) {
+        res[i % m] += res_a[i] + res_c[i] + res_g[i] + res_t[i];
+    }
+
+    int_fast32_t ind_max = 0;
+    int_fast32_t val_max = 0;
+
+    for (int_fast32_t i = 0; i < res.size(); i++) {
+
+        if (val_max < res[i]) {
+            val_max = res[i];
+            ind_max = i;
         }
     }
-
-    std::cout << pos_counter << "\n";
+    std::cout << val_max << " " << ind_max;
 }
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
+    int_fast32_t m;
 
-    std::string input_str;
+    std::cin >> m;
+    std::string input_str1, input_str2;
+    std::cin >> input_str1 >> input_str2;
 
-    std::cin >> input_str;
-
-    get_result(input_str);
+    get_result(input_str1, input_str2, m);
 
     return 0;
 }
