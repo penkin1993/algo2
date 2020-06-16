@@ -1,17 +1,13 @@
 #include <bits/stdc++.h>
 #include <iostream>
-#include <queue>
-#include <cmath>
 
-using cd = std::complex<double>;
-const double PI = acos(-1);
-
-void fft(std::vector<cd> &a, bool invert) {
+void fft(std::vector<std::complex<double>> &a, bool invert) {
     int_fast32_t n = a.size();
-    if (n == 1)
+    if (n == 1) {
         return;
+    }
 
-    std::vector<cd> a0(n / 2), a1(n / 2);
+    std::vector<std::complex<double>> a0(n / 2), a1(n / 2);
     for (int_fast32_t i = 0; 2 * i < n; i++) {
         a0[i] = a[2 * i];
         a1[i] = a[2 * i + 1];
@@ -19,8 +15,15 @@ void fft(std::vector<cd> &a, bool invert) {
     fft(a0, invert);
     fft(a1, invert);
 
-    double ang = 2 * PI / n * (invert ? -1 : 1);
-    cd w(1), wn(cos(ang), sin(ang));
+    double phi;
+
+    if (invert) {
+        phi = -2 * acos(-1) / n;
+    } else {
+        phi = 2 * acos(-1) / n;
+    }
+
+    std::complex<double> w(1), wn(cos(phi), sin(phi));
     for (int_fast32_t i = 0; 2 * i < n; i++) {
         a[i] = a0[i] + w * a1[i];
         a[i + n / 2] = a0[i] - w * a1[i];
@@ -32,9 +35,10 @@ void fft(std::vector<cd> &a, bool invert) {
     }
 }
 
-std::vector<int_fast32_t> multiply(std::vector<int_fast32_t> const &a, std::vector<int_fast32_t> const &b) {
-    std::vector<cd> fa(a.begin(), a.end()), fb(b.begin(), b.end());
+std::vector<int_fast32_t> prod(std::vector<int_fast32_t> const &a, std::vector<int_fast32_t> const &b) {
+    std::vector<std::complex<double>> fa(a.begin(), a.end()), fb(b.begin(), b.end());
     int_fast32_t n = 1;
+
     while (n < a.size() + b.size()) {
         n <<= 1;
     }
@@ -43,15 +47,19 @@ std::vector<int_fast32_t> multiply(std::vector<int_fast32_t> const &a, std::vect
 
     fft(fa, false);
     fft(fb, false);
+
     for (int_fast32_t i = 0; i < n; i++)
         fa[i] *= fb[i];
+
     fft(fa, true);
 
     std::vector<int_fast32_t> result(n);
     for (int_fast32_t i = 0; i < n; i++)
         result[i] = round(fa[i].real());
+
     return result;
 }
+
 
 void get_result(std::string num1, std::string num2) {
 
@@ -90,7 +98,7 @@ void get_result(std::string num1, std::string num2) {
         num2_array.push_back(std::stoi(num2.substr(n * i, n)));
     }
 
-    std::vector<int_fast32_t> res_array = multiply(num1_array, num2_array);
+    std::vector<int_fast32_t> res_array = prod(num1_array, num2_array);
 
     int_fast32_t dev = std::pow(10, n);
     std::vector<int_fast32_t> ans(res_array.size() + 1, 0);
