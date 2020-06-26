@@ -2,6 +2,8 @@
 #include <vector>
 #include <deque>
 
+int_fast32_t INF = 1e7;
+
 void get_min_div(int_fast32_t number, std::deque<int_fast32_t> *lp) {
     std::vector<int_fast32_t> primes;
     for (int_fast32_t i = 2; i < number; i++) {
@@ -94,88 +96,3 @@ int main() {
     get_statistics(number, &lp);
     return 0;
 }
-
-/*
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include <cstring>
-#include <algorithm>
-
-
-int main() {
-    uint32_t n;
-    std::cin >> n;
-
-    std::vector<uint32_t> lp(n + 1, 0);
-    std::vector<uint32_t> primes;
-
-    uint64_t sd = 0;
-    for (uint32_t i = 2; i <= n; i++) {
-        if (lp[i] == 0) {
-            sd += (lp[i] = i);
-
-            primes.push_back(i);
-        }
-        for (uint64_t p:primes) {
-            if ((p > lp[i]) || (i * p > n)) {
-                break;
-            }
-            sd += (lp[i * p] = p);
-        }
-    }
-
-    uint64_t ss0 = 1;
-    uint64_t ss1 = 1;
-    uint64_t sphi = 1;
-
-    uint32_t *divisors = new uint32_t[(n + 1) * 8];
-    uint8_t *powers = new uint8_t[(n + 1) * 8]{0};
-    uint8_t *sizes = new uint8_t[n + 1]{0};
-
-    for (uint32_t i = 2; i <= n; i++) {
-        uint32_t x = i, d = lp[x], prev_d = d;
-        if (d == x) {
-            divisors[(i << 3)] = d;
-            powers[(i << 3)] = 1;
-            sizes[i] = 1;
-        } else {
-            memcpy(&divisors[i << 3], &divisors[i / d << 3], sizeof(uint32_t) * sizes[i / d]);
-            memcpy(&powers[i << 3], &powers[i / d << 3], sizeof(uint8_t) * sizes[i / d]);
-
-            uint8_t p = 0;
-            for (; p < sizes[i / d]; p++) {
-                if (divisors[(i << 3) + p] == d) {
-                    break;
-                }
-            }
-            divisors[(i << 3) + p] = d;
-            powers[(i << 3) + p]++;
-            sizes[i] = std::max(uint8_t(p + 1), sizes[i / d]);
-        }
-
-        uint32_t s0 = 1;
-        uint32_t s1 = 1;
-        uint32_t phi = 1;
-        for (int n = 0; n < sizes[i]; n++) {
-            s0 *= (powers[(i << 3) + n] + 1);
-
-            uint64_t pp = pow(divisors[(i << 3) + n], powers[(i << 3) + n] - 1);
-            s1 *= (pp * divisors[(i << 3) + n] * divisors[(i << 3) + n] - 1) / (divisors[(i << 3) + n] - 1);
-            phi *= pp * (divisors[(i << 3) + n] - 1);
-
-        }
-        ss0 += s0;
-        ss1 += s1;
-        sphi += phi;
-    }
-
-    std::cout << sd << ' ' << ss0 << ' ' << ss1 << ' ' << sphi;
-
-    delete[]sizes;
-    delete[]powers;
-    delete[]divisors;
-
-    exit(0);
-}
-*/

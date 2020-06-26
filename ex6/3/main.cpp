@@ -1,10 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <tuple>
 
-int_fast64_t ZERO = 0;
-int_fast64_t MAX_S = 400002;
-int_fast64_t SHIFT = 200001;
+int_fast64_t INF = 0;
+int_fast64_t MAX_S = 2 * 1e5;
 
 class Tree {
 public:
@@ -38,6 +38,7 @@ private:
 
     void add(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b, int_fast64_t val);
 
+    void set(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b, int_fast64_t val);
 };
 
 Tree::Tree(std::vector<int64_t> *a) {
@@ -51,8 +52,8 @@ Tree::Tree(std::vector<int64_t> *a) {
         t.push_back(i);
     }
 
-    t.insert(t.end(), x - a->size(), ZERO);
-    upd.insert(upd.end(), t.size(), ZERO);
+    t.insert(t.end(), x - a->size(), INF);
+    upd.insert(upd.end(), t.size(), 0);
     cond.insert(cond.end(), t.size(), false);
 
     for (int_fast64_t v = x - 2; v >= 0; v--) {
@@ -64,7 +65,7 @@ int_fast64_t Tree::rmq(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast6
     push(v, l, r);
 
     if ((l > b) or (r < a)) {
-        return ZERO;
+        return INF;
     }
 
     if ((l >= a) and (r <= b)) {
@@ -130,6 +131,23 @@ void Tree::add(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast64_t a, i
     t[v] = std::max(get(2 * v + 1), get(2 * v + 2));
 }
 
+void Tree::set(int_fast64_t v, int_fast64_t l, int_fast64_t r, int_fast64_t a, int_fast64_t b, int_fast64_t val) {
+    push(v, l, r);
+    if ((l > b) or (r < a)) {
+        return;
+    }
+    if ((l >= a) and (r <= b)) {
+        upd[v] = val;
+        cond[v] = true;
+        return;
+    }
+
+    int_fast64_t m = (l + r) / 2;
+    set(2 * v + 1, l, m, a, b, val);
+    set(2 * v + 2, m + 1, r, a, b, val);
+    t[v] = std::min(get(2 * v + 1), get(2 * v + 2));
+
+}
 
 int main() {
     std::ios::sync_with_stdio(false), std::cin.tie(0), std::cout.tie(0);
@@ -142,56 +160,51 @@ int main() {
     std::vector<std::tuple<int_fast64_t, bool, int_fast64_t, int_fast64_t>> intervals;
     for (int_fast64_t i = 0; i < n; i++) {
         std::cin >> x1 >> y1 >> x2 >> y2;
-        intervals.emplace_back(x1 + SHIFT, true, y1 + SHIFT, y2 + SHIFT);
-        intervals.emplace_back(x2 + SHIFT + 1, false, y1 + SHIFT, y2 + SHIFT); // потому что включительно
+        intervals.emplace_back(MAX_S + x1, true, MAX_S + y1, MAX_S + y2);
+        intervals.emplace_back(MAX_S + x2 + 1, false, MAX_S + y1, MAX_S + y2); // потому что включительно
     }
 
     sort(intervals.begin(), intervals.end());
 
     int_fast64_t max_val = 0;
-    int_fast64_t loc_max = 0;
+    int_fast64_t loc_max;
     int_fast64_t x_max = 0;
     int_fast64_t y_max = 0;
 
     std::tuple<int_fast64_t, bool, int_fast64_t, int_fast64_t> interval;
-    for (auto & i : intervals) {
-        interval = i;
-        //std::cout << std::get<0>(interval) << ", " << std::get<1>(interval) << ", " << std::get<2>(interval) << ", " << std::get<3>(interval) << '\n';
+    for (int_fast64_t i = 0; i < 2 * n; i++) {
+        interval = intervals[i];
 
         if (std::get<1>(interval)) {
             tree.add(std::get<2>(interval), std::get<3>(interval), 1);
             loc_max = tree.rmq(0, 2*MAX_S);
-            if (loc_max > max_val) {// проверка максимума (максимум x1, y1 последнего добавленного)
+
+            if (loc_max > max_val) {
                 max_val = loc_max;
                 x_max = std::get<0>(interval);
-                if (tree.rmq(std::get<3>(interval), std::get<3>(interval)) == max_val) { ;
-                    y_max = std::get<3>(interval);
-                } else{
-                    y_max = std::get<2>(interval);
+
+                int_fast64_t i_ = 0;
+                int_fast64_t j_ = 2*MAX_S;
+
+                while (i_ != j_) {
+                    int_fast64_t  m = (i_ + j_) / 2;
+                    if (tree.rmq(i_, m) == max_val) {
+                        j_ = m;
+                    } else {
+                        i_ = m + 1;
+                    }
                 }
+                y_max = i_;
             }
+
         } else {
             tree.add(std::get<2>(interval), std::get<3>(interval), -1);
         }
+
     }
     std::cout << max_val << "\n";
-    std::cout << x_max - SHIFT << " " << y_max - SHIFT;
+    std::cout << x_max - MAX_S << " " << y_max - MAX_S;
 
     return 0;
 }
-
-/*
-2
-0 0 3 3
-1 1 4 4
-
-//std::cout << "add " << std::get<2>(interval)  << " " <<  std::get<3>(interval) << "\n";
-//std::cout << loc_max << "\n";
-
-
-//std::cout << std::get<0>(interval) << ", " << std::get<1>(interval) << ", " << std::get<2>(interval) << ", " << std::get<3>(interval) << '\n';
-//std::cout << "del " << std::get<2>(interval)  << " " <<  std::get<3>(interval) << "\n";
-*/
-
-
 
