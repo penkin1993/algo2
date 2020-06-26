@@ -10,7 +10,6 @@ class Tree {
 public:
     explicit Tree(std::vector<int64_t> *a);
 
-    /*
     ~Tree() = default;
 
     Tree(const Tree &) = delete;
@@ -20,7 +19,7 @@ public:
     Tree &operator=(const Tree &) = delete;
 
     Tree &operator=(Tree &&) = delete;
-*/
+
     void set(int_fast64_t a, int_fast64_t b, int_fast64_t val);
 
     int_fast64_t rmq(int_fast64_t a, int_fast64_t b);
@@ -156,7 +155,7 @@ struct Requests {
     explicit Requests(int_fast64_t i_, int_fast64_t j_, int_fast64_t q_) : i(i_), j(j_), q(q_) {};
 
     bool operator<(const Requests &other) const {
-        return !((i > other.i) || ((i == other.i) && (j > other.j)));
+        return q < other.q;
     }
 };
 
@@ -169,7 +168,7 @@ int main() {
     int_fast64_t n, m;
     input_file >> n >> m;
 
-    std::vector<int_fast64_t> a(n, 0);
+    std::vector<int_fast64_t> a(n, INF);
 
     Tree tree = Tree(&a);
 
@@ -183,6 +182,7 @@ int main() {
     std::sort(requests.begin(), requests.end());
 
     for (int_fast64_t i = 0; i < m; i++) {
+        std::cout << requests[i].i << " " << requests[i].j << "\n";
         tree.set(requests[i].i, requests[i].j, requests[i].q);
     }
 
@@ -195,22 +195,8 @@ int main() {
 
     output_file << "consistent\n";
     for (int_fast64_t i = 1; i < n + 1; i++) {
-        output_file << tree.rmq(i, i + 1) << " ";
+        output_file << tree.rmq(i, i) << " ";
     }
 
     return 0;
-
 }
-
-
-/*
-3 2
-1 2 1
-2 3 2
-
-3 3
-1 2 1
-1 1 2
-2 3 2
-*/
-
